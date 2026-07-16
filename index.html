@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatGPT 與 Codex 文件中心</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231e3a5f'/%3E%3Cpath d='M24 34 h52 a6 6 0 0 1 6 6 v20 a6 6 0 0 1 -6 6 H46 l-14 12 v-12 h-8 a6 6 0 0 1 -6 -6 V40 a6 6 0 0 1 6 -6 z' fill='%233b82f6'/%3E%3Ctext x='50' y='58' font-family='monospace' font-size='20' font-weight='700' text-anchor='middle' fill='white'%3E&lt;/&gt;%3C/text%3E%3C/svg%3E" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+           background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+    header { background: linear-gradient(135deg, #dbeafe 0%, #f0f4f8 100%);
+             border-bottom: 1px solid #bfdbfe; padding: 56px 24px 44px; text-align: center; }
+    header h1 { font-size: 2.3rem; font-weight: 700; color: #1e3a5f; }
+    header p  { margin-top: 12px; color: #4a5568; font-size: 1.05rem;
+                max-width: 640px; margin-inline: auto; }
+
+    main { max-width: 1000px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    a.doc-card { display: flex; flex-direction: column; gap: 10px; background: #fff;
+      border: 1px solid #cbd5e0; border-radius: 14px; padding: 24px 26px;
+      text-decoration: none; color: inherit; transition: all 0.2s; position: relative; overflow: hidden; }
+    a.doc-card:hover { border-color: #3b82f6; box-shadow: 0 8px 20px rgba(37,99,235,0.12); transform: translateY(-2px); }
+    a.doc-card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+      background: var(--accent, #3b82f6); }
+
+    .doc-index { font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #6b7280;
+      letter-spacing: 0.08em; }
+    .doc-title { font-size: 1.15rem; font-weight: 700; color: #1e3a5f; }
+    .doc-desc { font-size: 0.85rem; color: #4a5568; }
+    .doc-meta { margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .doc-tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; padding: 2px 9px;
+      border-radius: 4px; background: #dbeafe; color: #1e40af; }
+    .doc-arrow { position: absolute; right: 22px; bottom: 20px; font-family: monospace; font-size: 1.1rem;
+      color: #94a3b8; transition: transform 0.2s; }
+    a.doc-card:hover .doc-arrow { transform: translateX(4px); color: #3b82f6; }
+
+    footer { text-align: center; padding: 32px 24px 56px; color: #94a3b8; font-size: 0.78rem; }
+    .footer-links { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 10px; }
+    .footer-links a { color: #2563eb; text-decoration: none; font-weight: 600; }
+    .footer-links a:hover { text-decoration: underline; }
+    .footer-links .sep { color: #cbd5e0; }
+    .footer-copy { max-width: 640px; margin: 0 auto; color: #94a3b8; }
+
+    @media (max-width: 720px) {
+      .card-grid { grid-template-columns: 1fr; }
+    }
+
+    #themeToggle { position: fixed; top: 16px; right: 16px; z-index: 9999;
+      padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #fff; color: #1a202c;
+      transition: all 0.25s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); letter-spacing: 0.03em; }
+    #themeToggle:hover { border-color: #2563eb; color: #2563eb; }
+
+    body.dark { background: #0f1117; color: #e2e8f0; }
+    body.dark header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom-color: #2d3748; }
+    body.dark header h1 { color: #f7fafc; }
+    body.dark header p  { color: #a0aec0; }
+    body.dark a.doc-card { background: #1a202c; border-color: #2d3748; }
+    body.dark a.doc-card:hover { border-color: #4299e1; box-shadow: 0 8px 20px rgba(66,153,225,0.15); }
+    body.dark .doc-index { color: #718096; }
+    body.dark .doc-title { color: #90cdf4; }
+    body.dark .doc-desc { color: #a0aec0; }
+    body.dark .doc-tag { background: #1a3a5c; color: #90cdf4; }
+    body.dark .doc-arrow { color: #4a5568; }
+    body.dark a.doc-card:hover .doc-arrow { color: #63b3ed; }
+    body.dark footer { color: #4a5568; }
+    body.dark .footer-links a { color: #63b3ed; }
+    body.dark .footer-links .sep { color: #2d3748; }
+    body.dark .footer-copy { color: #4a5568; }
+    body.dark #themeToggle { background: #1a202c; color: #e2e8f0; border-color: #4a5568; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    body.dark #themeToggle:hover { border-color: #90cdf4; color: #90cdf4; }
+  </style>
+</head>
+<body>
+
+<button id="themeToggle" onclick="toggleTheme()">🌙 暗色模式</button>
+
+<header>
+  <h1>ChatGPT 與 Codex 文件中心</h1>
+  <p>六份可互動式學習的官方文件, 涵蓋入門使用, 功能總覽, 管理部署, 系統設定, 開發整合與資安控管, 點選卡片進入對應課程。</p>
+</header>
+
+<main>
+  <div class="card-grid">
+    <a class="doc-card" style="--accent:#3b82f6" href="ChatGPT.html">
+      <div class="doc-index">01 · QUICKSTART</div>
+      <div class="doc-title">ChatGPT 快速上手</div>
+      <div class="doc-desc">從快速入門, 提示技巧, 到模型, 權限, 定價與詞彙表, 認識 ChatGPT 與 Codex 的完整使用方式。</div>
+      <div class="doc-meta"><span class="doc-tag">20 章節</span><span class="doc-tag">入門</span></div>
+      <div class="doc-arrow">→</div>
+    </a>
+
+    <a class="doc-card" style="--accent:#16a34a" href="Features.html">
+      <div class="doc-index">02 · FEATURES</div>
+      <div class="doc-title">功能總覽</div>
+      <div class="doc-desc">專案與任務管理, 瀏覽器與 Computer Use, 排程任務, 檔案處理, 外掛與各項系統設定。</div>
+      <div class="doc-meta"><span class="doc-tag">21 章節</span><span class="doc-tag">功能</span></div>
+      <div class="doc-arrow">→</div>
+    </a>
+
+    <a class="doc-card" style="--accent:#9333ea" href="Administration.html">
+      <div class="doc-index">03 · ADMINISTRATION</div>
+      <div class="doc-title">管理與部署</div>
+      <div class="doc-desc">身分驗證, 角色與工作區權限, 受管理設定, 法規遵循, 稽核事件與企業級佈署。</div>
+      <div class="doc-meta"><span class="doc-tag">18 章節</span><span class="doc-tag">管理</span></div>
+      <div class="doc-arrow">→</div>
+    </a>
+
+    <a class="doc-card" style="--accent:#d97706" href="Configuration.html">
+      <div class="doc-index">04 · CONFIGURATION</div>
+      <div class="doc-title">設定與客製化</div>
+      <div class="doc-desc">config.toml 與 requirements.toml 參考, AGENTS.md, Subagents, MCP, Windows 與 WSL 設定。</div>
+      <div class="doc-meta"><span class="doc-tag">17 章節</span><span class="doc-tag">設定</span></div>
+      <div class="doc-arrow">→</div>
+    </a>
+
+    <a class="doc-card" style="--accent:#0891b2" href="Developers.html">
+      <div class="doc-index">05 · DEVELOPERS</div>
+      <div class="doc-title">開發者指南</div>
+      <div class="doc-desc">Code Review, Hooks, 各類執行環境, Codex SDK, App Server, GitHub 與 Slack 等第三方整合。</div>
+      <div class="doc-meta"><span class="doc-tag">22 章節</span><span class="doc-tag">開發</span></div>
+      <div class="doc-arrow">→</div>
+    </a>
+
+    <a class="doc-card" style="--accent:#dc2626" href="Security.html">
+      <div class="doc-index">06 · SECURITY</div>
+      <div class="doc-title">資安與 Codex Security</div>
+      <div class="doc-desc">權限與沙箱模型, 自動審查, Codex Security 掃描, 弱點修復與追蹤, 威脅模型與資安須知。</div>
+      <div class="doc-meta"><span class="doc-tag">18 章節</span><span class="doc-tag">資安</span></div>
+      <div class="doc-arrow">→</div>
+    </a>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-links">
+    <a href="https://github.com/AlleninTaipei/my-ChatGPTCodexDoc" target="_blank" rel="noopener">GitHub Repo</a>
+    <span class="sep">·</span>
+    <a href="https://learn.chatgpt.com/docs" target="_blank" rel="noopener">資料來源: learn.chatgpt.com/docs</a>
+  </div>
+  <p class="footer-copy">製作日期: 2026 年 7 月 · 內容編譯並翻譯自 OpenAI 官方文件, 原始內容版權所有 © OpenAI。本站為非官方之繁體中文互動式整理, 僅供學習參考, 與 OpenAI 無關聯, 亦非其官方產品。</p>
+</footer>
+
+<script>
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    document.getElementById('themeToggle').textContent = isDark ? '☀ 亮色模式' : '🌙 暗色模式';
+  }
+</script>
+</body>
+</html>

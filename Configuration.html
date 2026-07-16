@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Codex 設定與組態指南</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+           background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+    header { background: linear-gradient(135deg, #dbeafe 0%, #f0f4f8 100%);
+             border-bottom: 1px solid #bfdbfe; padding: 48px 24px 40px; text-align: center; }
+    header h1 { font-size: 2.2rem; font-weight: 700; color: #1e3a5f; }
+    header p  { margin-top: 10px; color: #4a5568; font-size: 1.05rem; max-width: 640px; margin-inline: auto; }
+    main    { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+    section { margin-bottom: 56px; }
+    h2 { font-size: 1.4rem; font-weight: 600; color: #1e40af; border-left: 4px solid #3b82f6; padding-left: 14px; margin-bottom: 20px; }
+    h3 { font-size: 1.05rem; font-weight: 600; color: #1a202c; margin: 24px 0 8px; }
+    p  { color: #4a5568; margin-bottom: 12px; }
+    .code-block { background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 8px; padding: 16px 18px;
+      font-family: monospace; font-size: 0.8rem; color: #1a202c; overflow-x: auto; margin-top: 14px; line-height: 1.7; white-space: pre; }
+    .kw  { color: #7c3aed; } .fn  { color: #16a34a; } .str { color: #d97706; } .cmt { color: #94a3b8; font-style: italic; } .key { color: #2563eb; }
+    .info-box { background: #dbeafe; border: 1px solid #93c5fd; border-radius: 10px; padding: 16px 20px; margin-top: 14px; }
+    .info-box .tag { display: inline-block; background: #3b82f6; color: #fff; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; letter-spacing: 0.05em; }
+    .info-box p { color: #1e3a5f; font-size: 0.88rem; margin: 0; }
+    .takeaway { background: linear-gradient(135deg, #dcfce7, #f0fdf4); border: 1px solid #4ade80; border-radius: 10px; padding: 20px 24px; margin-top: 16px; }
+    .takeaway p { color: #166534; font-size: 0.9rem; margin: 0; }
+    .api-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .field { background: #fff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 14px 16px; }
+    .field .name { font-family: monospace; font-size: 0.85rem; color: #16a34a; font-weight: 600; }
+    .field .desc { font-size: 0.82rem; color: #4a5568; margin-top: 4px; }
+    .event-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .event-item { background: #fff; border: 1px solid #cbd5e0; border-radius: 6px; padding: 9px 14px; display: flex; gap: 14px; align-items: baseline; }
+    .event-name { font-family: monospace; font-size: 0.82rem; color: #16a34a; min-width: 170px; flex-shrink: 0; }
+    .event-desc { font-size: 0.82rem; color: #4a5568; }
+    .response-box { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px; padding: 20px; margin-top: 16px; }
+    .response-field { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+    .response-field:last-child { border-bottom: none; }
+    .rf-key { font-family: monospace; font-size: 0.82rem; color: #d97706; width: 160px; flex-shrink: 0; }
+    .rf-val { font-size: 0.85rem; color: #374151; }
+    .stage-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stage-tab  { padding: 7px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1px solid #cbd5e0; background: #e2e8f0; color: #4a5568; transition: all 0.2s; }
+    .stage-tab.active { background: #2563eb; border-color: #3b82f6; color: #fff; }
+    .stage-tab.done   { background: #166534; border-color: #4ade80; color: #dcfce7; }
+    .step-indicator { color: #6b7280; font-size: 0.82rem; margin-top: 10px; display: block; }
+    .demo-panel { display: none; }
+    .demo-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .col-card { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px; padding: 16px 18px; }
+    .col-card-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+    .col-card p { font-size: 0.83rem; color: #4a5568; margin-bottom: 6px; }
+    .col-card p:last-child { margin-bottom: 0; }
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .chip-label { font-size: 0.75rem; color: #6b7280; }
+    .chip { padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid #cbd5e0; background: #e2e8f0; color: #4a5568; transition: all 0.2s; }
+    .chip.active { background: #dcfce7; border-color: #4ade80; color: #166534; }
+    .data-table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid #cbd5e0; border-radius: 8px; }
+    table.data-table { border-collapse: collapse; width: 100%; font-size: 0.76rem; min-width: 480px; }
+    table.data-table th, table.data-table td { padding: 7px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; }
+    table.data-table th { background: #f0f4f8; color: #1e3a5f; font-weight: 700; white-space: nowrap; }
+    table.data-table tr:last-child td { border-bottom: none; }
+    table.data-table code { font-family: monospace; color: #2563eb; }
+    .search-box { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+    .search-box input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e0; background: #fff; color: #1a202c; font-size: 0.85rem; }
+    .search-box input:focus { outline: 2px solid #3b82f6; }
+    .filter-count { font-size: 0.75rem; color: #6b7280; white-space: nowrap; }
+    @media (max-width: 640px) { .api-fields, .two-col, .three-col { grid-template-columns: 1fr; } }
+    #themeToggle { position: fixed; top: 16px; right: 16px; z-index: 9999; padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; cursor: pointer; border: 1px solid #cbd5e0; background: #fff; color: #1a202c; transition: all 0.25s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); letter-spacing: 0.03em; }
+    #themeToggle:hover { border-color: #2563eb; color: #2563eb; }
+    body.dark { background: #0f1117; color: #e2e8f0; }
+    body.dark header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom-color: #2d3748; }
+    body.dark header h1 { color: #f7fafc; } body.dark header p  { color: #a0aec0; }
+    body.dark h2 { color: #90cdf4; border-left-color: #4299e1; } body.dark h3 { color: #e2e8f0; } body.dark p  { color: #a0aec0; }
+    body.dark .code-block { background: #0d1117; border-color: #2d3748; color: #e2e8f0; }
+    body.dark .kw  { color: #9f7aea; } body.dark .fn  { color: #68d391; } body.dark .str { color: #f6ad55; } body.dark .cmt { color: #4a5568; } body.dark .key { color: #63b3ed; }
+    body.dark .info-box { background: #1a202c; border-color: #2a4a6a; } body.dark .info-box .tag { background: #2a4a6a; color: #90cdf4; } body.dark .info-box p { color: #a0aec0; }
+    body.dark .takeaway { background: linear-gradient(135deg, #1a2a1a, #1a202c); border-color: #276749; } body.dark .takeaway p { color: #c6f6d5; }
+    body.dark .field { background: #1a202c; border-color: #2d3748; } body.dark .field .name { color: #68d391; } body.dark .field .desc { color: #718096; }
+    body.dark .event-item { background: #1a202c; border-color: #2d3748; } body.dark .event-name { color: #68d391; } body.dark .event-desc { color: #718096; }
+    body.dark .response-box { background: #1a202c; border-color: #2d3748; } body.dark .response-field { border-bottom-color: #2d3748; }
+    body.dark .rf-key { color: #f6ad55; } body.dark .rf-val { color: #a0aec0; }
+    body.dark .step-indicator { color: #718096; }
+    body.dark .stage-tab { background: #1a202c; border-color: #2d3748; color: #718096; }
+    body.dark .stage-tab.active { background: #2b6cb0; border-color: #4299e1; color: #fff; }
+    body.dark .stage-tab.done   { background: #276749; border-color: #48bb78; color: #c6f6d5; }
+    body.dark .col-card { background: #1a202c; border-color: #2d3748; } body.dark .col-card-title { color: #4a5568; } body.dark .col-card p { color: #a0aec0; }
+    body.dark .chip { background: #1a202c; border-color: #2d3748; color: #718096; } body.dark .chip.active { background: #1c3a2a; border-color: #38a169; color: #68d391; }
+    body.dark .data-table-wrap { border-color: #2d3748; } body.dark table.data-table th { background: #1a202c; color: #90cdf4; } body.dark table.data-table td { border-bottom-color: #2d3748; color: #a0aec0; }
+    body.dark table.data-table code { color: #63b3ed; }
+    body.dark .search-box input { background: #1a202c; border-color: #2d3748; color: #e2e8f0; }
+    body.dark #themeToggle { background: #1a202c; color: #e2e8f0; border-color: #4a5568; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    body.dark #themeToggle:hover { border-color: #90cdf4; color: #90cdf4; }
+  </style>
+</head>
+<body>
+
+<button id="themeToggle" onclick="toggleTheme()">🌙 暗色模式</button>
+
+<header>
+  <h1>Codex 設定與組態指南</h1>
+  <p>從 AGENTS.md, 記憶, skills, MCP, 子代理, 到 config.toml 完整參考, sandbox 與 WSL, 一份可互動查閱的設定文件。</p>
+</header>
+
+<main>
+
+<section id="customization">
+  <h2>Customization</h2>
+  <p>用專案指引, skills, MCP 與子代理自訂 Codex。自訂讓 Codex 依照你團隊的工作方式運作, 這些層彼此互補而非互相競爭。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">AGENTS.md</div><div class="desc">持續性的專案指引, 定義行為規範。</div></div>
+    <div class="field"><div class="name">Memories</div><div class="desc">從先前工作中學到的有用情境, 延續到未來任務。</div></div>
+    <div class="field"><div class="name">Skills</div><div class="desc">可重複使用的工作流程, 封裝團隊的專業知識。</div></div>
+    <div class="field"><div class="name">MCP</div><div class="desc">連接外部工具與共享系統的存取管道。</div></div>
+    <div class="field"><div class="name">Subagents</div><div class="desc">把工作委派給專門化的子代理。</div></div>
+  </div>
+
+  <h3>AGENTS.md 指引</h3>
+  <p>AGENTS.md 提供跟著儲存庫走的持久性專案指引, 在代理開始工作前套用, 內容應保持精簡, 用於建置與測試指令, 審查期望, 儲存庫慣例與目錄專屬指示。當代理對程式碼庫做出錯誤假設時, 在 AGENTS.md 中修正, 並請代理更新該檔案, 讓修正得以延續, 把它當成一個回饋迴圈。</p>
+  <p>Codex 可從多個位置載入指引: 你 Codex 家目錄中的全域檔案, 以及團隊可check in 的儲存庫專屬檔案, 越靠近工作目錄的檔案優先權越高。</p>
+
+  <h3>Skills</h3>
+  <p>Skills 為 Codex 提供可重複工作流程的能力, 通常是最適合的做法, 因為能支援更豐富的指示, 腳本與參考資料, 同時保持跨任務可重複使用。一個 skill 通常是一個 SKILL.md 檔案加上選擇性的 scripts, references 與 assets。</p>
+  <div class="code-block"><span class="cmt">---</span>
+<span class="key">name</span>: <span class="str">commit</span>
+<span class="key">description</span>: <span class="str">Stage and commit changes in semantic groups. Use when
+  the user wants to commit, organize commits, or clean up
+  a branch before pushing.</span>
+<span class="cmt">---</span>
+
+<span class="cmt">1. Do not run `git add .`. Stage files in logical groups by purpose.
+2. Group into separate commits: feat -> test -> docs -> refactor -> chore.
+3. Write concise commit messages that match the change scope.
+4. Keep each commit focused and reviewable.</span></div>
+
+  <h3>MCP 與 Subagents</h3>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">MCP</div>
+      <p>連接 Codex 到外部工具與情境提供者的標準做法, 適合議題追蹤系統, 設計工具, 瀏覽器或共享文件系統這類活在本機儲存庫之外的能力。伺服器可以公開工具, 資源與提示範本。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Subagents</div>
+      <p>建立具有不同角色的代理, 並用不同方式提示它們使用工具, 例如一個代理執行特定測試指令, 另一個帶有能擷取正式環境紀錄的 MCP 伺服器, 每個子代理專注於自己的工作並使用合適的工具。</p>
+    </div>
+  </div>
+
+  <h3>建議的建置順序</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · AGENTS.md</div><div class="event-desc">讓 Codex 遵循你的儲存庫慣例, 加入 pre-commit hook 與 linter 強制執行規則。</div></div>
+    <div class="event-item"><div class="event-name">2 · Plugin 或 Skill</div><div class="event-desc">已有可重複使用的工作流程時安裝 plugin, 否則建立 skill, 想分享時再封裝成 plugin。</div></div>
+    <div class="event-item"><div class="event-name">3 · MCP</div><div class="event-desc">當工作流程需要外部系統, 例如 Linear, GitHub, 文件伺服器或設計工具時使用。</div></div>
+    <div class="event-item"><div class="event-name">4 · Subagents</div><div class="event-desc">準備好把吵雜或專門化的任務委派給子代理時使用。</div></div>
+  </div>
+</section>
+
+<section id="memories">
+  <h2>Memories</h2>
+  <p>ChatGPT 與 Codex 如何跨對話與任務延續有用的情境, 網頁版使用 ChatGPT memory, 本機 Codex 用戶端則使用獨立的本機記憶儲存與控制項。必要的團隊指引仍應放在 AGENTS.md 或已 check in 的文件中, 記憶只是輔助性的回憶層。</p>
+
+  <h3>各介面的記憶控制</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">桌面應用程式</div><div class="desc">用 /memories 選擇任務是否可使用本機記憶或貢獻未來記憶, 於 Settings > Personalization 開關功能。</div></div>
+    <div class="field"><div class="name">ChatGPT Work</div><div class="desc">使用帳號與工作區可用的記憶設定, 不使用本機 Codex 記憶儲存。</div></div>
+    <div class="field"><div class="name">Codex CLI</div><div class="desc">互動式工作階段用 /memories 控制目前任務能否使用既有記憶或成為未來記憶的輸入。</div></div>
+    <div class="field"><div class="name">IDE 擴充功能</div><div class="desc">使用已連接 Codex host 的本機記憶儲存, 啟用時採用與 CLI 相同的任務層級控制。</div></div>
+  </div>
+
+  <h3>本機記憶如何運作與儲存</h3>
+  <p>啟用記憶後, Codex 會把符合資格的先前任務中有用的情境轉成本機記憶檔案, 跳過進行中或短暫的工作階段, 對產生的記憶欄位進行密鑰編修, 並在背景更新記憶而非在每項任務結束時立即更新。記憶儲存在 Codex 家目錄的 ~/.codex/memories/ 之下, 包含摘要, 持久項目, 近期輸入與佐證證據, 應視為產生出來的狀態, 分享 Codex 家目錄前建議先檢查。</p>
+
+  <h3>設定本機記憶</h3>
+  <p>本機 Codex 記憶預設為關閉, 在桌面應用程式的 Settings > Personalization 開啟 Enable memories, 或透過設定檔啟用功能旗標。</p>
+  <div class="code-block"><span class="key">[features]</span>
+<span class="key">memories</span> = <span class="kw">true</span></div>
+  <div class="api-fields">
+    <div class="field"><div class="name">memories.generate_memories</div><div class="desc">控制新建立的任務能否作為記憶產生的輸入。</div></div>
+    <div class="field"><div class="name">memories.use_memories</div><div class="desc">控制 Codex 是否把既有記憶注入未來工作階段。</div></div>
+    <div class="field"><div class="name">memories.disable_on_external_context</div><div class="desc">為 true 時, 使用外部情境 (如 MCP 呼叫或網頁搜尋) 的任務不會進入記憶產生。</div></div>
+    <div class="field"><div class="name">memories.min_rate_limit_remaining_percent</div><div class="desc">開始產生記憶前所需的最低剩餘速率限制百分比。</div></div>
+  </div>
+</section>
+
+<section id="chronicle">
+  <h2>Chronicle</h2>
+  <p>從近期螢幕情境建立 Codex 記憶。Chronicle 是選擇性加入的研究預覽功能, 僅提供給 macOS 上的 ChatGPT Pro 訂閱者, 需要 Screen Recording 與 Accessibility 權限。啟用前請留意它會快速消耗速率限制, 增加提示注入風險, 並在裝置上以未加密方式儲存記憶。</p>
+
+  <h3>啟用 Chronicle</h3>
+  <div class="stage-tabs" data-group="chronicleStep">
+    <div class="stage-tab active" data-group="chronicleStep" data-step="0" onclick="goStep('chronicleStep',0)">1</div>
+    <div class="stage-tab" data-group="chronicleStep" data-step="1" onclick="goStep('chronicleStep',1)">2</div>
+    <div class="stage-tab" data-group="chronicleStep" data-step="2" onclick="goStep('chronicleStep',2)">3</div>
+    <div class="stage-tab" data-group="chronicleStep" data-step="3" onclick="goStep('chronicleStep',3)">4</div>
+    <div class="stage-tab" data-group="chronicleStep" data-step="4" onclick="goStep('chronicleStep',4)">5</div>
+  </div>
+  <div class="demo-panel visible" data-group="chronicleStep" data-step="0"><p>開啟 ChatGPT 桌面應用程式的 Settings。</p></div>
+  <div class="demo-panel" data-group="chronicleStep" data-step="1"><p>前往 Personalization, 確認 Memories 已啟用。</p></div>
+  <div class="demo-panel" data-group="chronicleStep" data-step="2"><p>在 Memories 設定下方開啟 Chronicle。</p></div>
+  <div class="demo-panel" data-group="chronicleStep" data-step="3"><p>檢視同意對話框並選擇 Continue。</p></div>
+  <div class="demo-panel" data-group="chronicleStep" data-step="4"><p>依提示授予 macOS Screen Recording 與 Accessibility 權限, 完成後選擇 Try it out 或開始新任務。</p></div>
+  <span class="step-indicator" data-indicator="chronicleStep">步驟 1 / 5</span>
+
+  <h3>隱私與安全</h3>
+  <div class="info-box"><span class="tag">重要</span><p>Chronicle 使用螢幕截圖, 可能包含螢幕上可見的敏感資訊, 它沒有麥克風或系統音訊存取權, 不要用它錄製會議或與他人的溝通內容, 檢視敏感內容時請暫停 Chronicle。截圖暫時儲存於裝置上, 超過 6 小時會被刪除, 產生的記憶是未加密的 Markdown 檔案, 儲存在 $CODEX_HOME/memories_extensions/chronicle/ 之下, 使用 Chronicle 會提高螢幕內容遭提示注入攻擊的風險。</p></div>
+  <div class="code-block"><span class="cmt"># 指定用於記憶彙整的模型</span>
+<span class="key">[memories]</span>
+<span class="key">consolidation_model</span> = <span class="str">"gpt-5.4-mini"</span></div>
+</section>
+
+<section id="config-basics">
+  <h2>Config basics</h2>
+  <p>學習設定本機 Codex 用戶端的基礎知識。Codex 從多個位置讀取設定, 個人預設值位於 ~/.codex/config.toml, 可在儲存庫加入 .codex/config.toml 做專案層級覆寫, 基於安全考量, 只有在你信任該專案時才會載入專案層級的 .codex/ 設定。</p>
+
+  <h3>設定檔優先順序, 由高到低</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · CLI 參數</div><div class="event-desc">CLI 旗標與 --config 覆寫。</div></div>
+    <div class="event-item"><div class="event-name">2 · 專案設定檔</div><div class="event-desc">.codex/config.toml, 由專案根目錄到目前工作目錄, 越接近者優先, 僅限受信任專案。</div></div>
+    <div class="event-item"><div class="event-name">3 · Profile 檔案</div><div class="event-desc">以 --profile profile-name 選取的設定檔。</div></div>
+    <div class="event-item"><div class="event-name">4 · 使用者設定</div><div class="event-desc">~/.codex/config.toml。</div></div>
+    <div class="event-item"><div class="event-name">5 · 系統設定</div><div class="event-desc">若存在, Unix 上的 /etc/codex/config.toml。</div></div>
+    <div class="event-item"><div class="event-name">6 · 內建預設值</div><div class="event-desc">Codex 的預設行為。</div></div>
+  </div>
+
+  <h3>常見設定選項</h3>
+  <div class="chip-row" data-chipgroup="cfgOpt">
+    <span class="chip active" data-group="cfgOpt" data-val="model" onclick="chipSelect('cfgOpt','model')">預設模型</span>
+    <span class="chip" data-group="cfgOpt" data-val="approval" onclick="chipSelect('cfgOpt','approval')">核准提示</span>
+    <span class="chip" data-group="cfgOpt" data-val="sandbox" onclick="chipSelect('cfgOpt','sandbox')">Sandbox 層級</span>
+    <span class="chip" data-group="cfgOpt" data-val="winsandbox" onclick="chipSelect('cfgOpt','winsandbox')">Windows sandbox</span>
+    <span class="chip" data-group="cfgOpt" data-val="websearch" onclick="chipSelect('cfgOpt','websearch')">網頁搜尋模式</span>
+    <span class="chip" data-group="cfgOpt" data-val="reasoning" onclick="chipSelect('cfgOpt','reasoning')">推理強度</span>
+    <span class="chip" data-group="cfgOpt" data-val="personality" onclick="chipSelect('cfgOpt','personality')">溝通風格</span>
+    <span class="chip" data-group="cfgOpt" data-val="logdir" onclick="chipSelect('cfgOpt','logdir')">紀錄目錄</span>
+  </div>
+  <div class="demo-panel visible" data-group="cfgOpt" data-val="model"><p>選擇 CLI 與 IDE 預設使用的模型。</p><div class="code-block"><span class="key">model</span> = <span class="str">"gpt-5.6"</span></div></div>
+  <div class="demo-panel" data-group="cfgOpt" data-val="approval"><p>控制 Codex 執行產生的指令前何時暫停詢問。</p><div class="code-block"><span class="key">approval_policy</span> = <span class="str">"on-request"</span></div></div>
+  <div class="demo-panel" data-group="cfgOpt" data-val="sandbox"><p>調整 Codex 執行指令時的檔案系統與網路存取程度。</p><div class="code-block"><span class="key">sandbox_mode</span> = <span class="str">"workspace-write"</span></div></div>
+  <div class="demo-panel" data-group="cfgOpt" data-val="winsandbox"><p>在 Windows 原生執行 Codex 時, 設定原生 sandbox 模式為 elevated, 只有在沒有管理員權限或 elevated 設定失敗時才用 unelevated。</p><div class="code-block"><span class="key">[windows]</span>
+<span class="key">sandbox</span> = <span class="str">"elevated"</span>   <span class="cmt"># 建議</span></div></div>
+  <div class="demo-panel" data-group="cfgOpt" data-val="websearch"><p>cached 為預設值, 使用 OpenAI 維護的索引；indexed 只在搜尋索引允許時存取外部網頁；live 擷取最新網頁資料；disabled 關閉工具。</p><div class="code-block"><span class="key">web_search</span> = <span class="str">"cached"</span>  <span class="cmt"># 預設值</span></div></div>
+  <div class="demo-panel" data-group="cfgOpt" data-val="reasoning"><p>在支援的模型上調整推理使用的額度。</p><div class="code-block"><span class="key">model_reasoning_effort</span> = <span class="str">"high"</span></div></div>
+  <div class="demo-panel" data-group="cfgOpt" data-val="personality"><p>為支援的模型設定預設溝通風格, 之後可用 /personality 於工作階段中覆寫。</p><div class="code-block"><span class="key">personality</span> = <span class="str">"friendly"</span> <span class="cmt"># 或 "pragmatic" 或 "none"</span></div></div>
+  <div class="demo-panel" data-group="cfgOpt" data-val="logdir"><p>覆寫 Codex 寫入本機紀錄檔案的位置, 明確設定後會啟用選擇性加入的純文字 TUI 紀錄。</p><div class="code-block"><span class="key">log_dir</span> = <span class="str">"/absolute/path/to/codex-logs"</span></div></div>
+
+  <h3>功能旗標, [features] 表格</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Key</th><th>預設值</th><th>成熟度</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>apps</code></td><td>true</td><td>Stable</td><td>啟用 app 連接器整合</td></tr>
+        <tr><td><code>goals</code></td><td>true</td><td>Stable</td><td>啟用持久化目標與自動延續</td></tr>
+        <tr><td><code>hooks</code></td><td>true</td><td>Stable</td><td>啟用來自 hooks.json 或內嵌 [hooks] 的生命週期 hooks</td></tr>
+        <tr><td><code>fast_mode</code></td><td>true</td><td>Stable</td><td>啟用 Fast mode 選擇與 service_tier = "fast" 路徑</td></tr>
+        <tr><td><code>memories</code></td><td>false</td><td>Experimental</td><td>啟用 Memories</td></tr>
+        <tr><td><code>multi_agent</code></td><td>true</td><td>Stable</td><td>啟用子代理協作工具</td></tr>
+        <tr><td><code>personality</code></td><td>true</td><td>Stable</td><td>啟用個性選擇控制項</td></tr>
+        <tr><td><code>remote_plugin</code></td><td>true</td><td>Stable</td><td>啟用遠端外掛目錄</td></tr>
+        <tr><td><code>shell_snapshot</code></td><td>true</td><td>Stable</td><td>快照 shell 環境以加速重複指令</td></tr>
+        <tr><td><code>shell_tool</code></td><td>true</td><td>Stable</td><td>啟用預設的 shell 工具</td></tr>
+        <tr><td><code>unified_exec</code></td><td>Windows 以外預設 true</td><td>Stable</td><td>使用統一的 PTY 支援 exec 工具</td></tr>
+        <tr><td><code>web_search</code></td><td>true</td><td>Deprecated</td><td>舊版切換, 建議改用頂層 web_search 設定</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="advanced-configuration">
+  <h2>Advanced Configuration</h2>
+  <p>當你需要對 providers, 政策與整合有更多控制權時使用這些進階選項。</p>
+
+  <h3>Profiles</h3>
+  <p>Profiles 讓你儲存具名的設定層, 並從 CLI 之間切換, 傳入 --profile profile-name 時, Codex 會先載入 ~/.codex/config.toml, 再疊加 ~/.codex/profile-name.config.toml。</p>
+  <div class="code-block"><span class="cmt"># ~/.codex/deep-review.config.toml</span>
+<span class="key">model</span> = <span class="str">"gpt-5.5"</span>
+<span class="key">model_reasoning_effort</span> = <span class="str">"xhigh"</span>
+<span class="key">approval_policy</span> = <span class="str">"on-request"</span></div>
+  <div class="code-block"><span class="fn">codex</span> <span class="key">--profile</span> <span class="str">deep-review</span></div>
+
+  <h3>從 CLI 一次性覆寫</h3>
+  <div class="code-block"><span class="cmt"># 專屬旗標</span>
+<span class="fn">codex</span> <span class="key">--model</span> <span class="str">gpt-5.4</span>
+
+<span class="cmt"># 通用鍵值覆寫, 值為 TOML 而非 JSON</span>
+<span class="fn">codex</span> <span class="key">--config</span> <span class="str">model='"gpt-5.4"'</span>
+<span class="fn">codex</span> <span class="key">--config</span> <span class="str">sandbox_workspace_write.network_access=true</span></div>
+
+  <h3>自訂模型提供者</h3>
+  <div class="chip-row" data-chipgroup="provider">
+    <span class="chip active" data-group="provider" data-val="proxy" onclick="chipSelect('provider','proxy')">LLM proxy</span>
+    <span class="chip" data-group="provider" data-val="bedrock" onclick="chipSelect('provider','bedrock')">Amazon Bedrock</span>
+    <span class="chip" data-group="provider" data-val="oss" onclick="chipSelect('provider','oss')">OSS 本機模式</span>
+    <span class="chip" data-group="provider" data-val="azure" onclick="chipSelect('provider','azure')">Azure</span>
+  </div>
+  <div class="demo-panel visible" data-group="provider" data-val="proxy"><div class="code-block"><span class="key">[model_providers.proxy]</span>
+<span class="key">name</span> = <span class="str">"OpenAI using LLM proxy"</span>
+<span class="key">base_url</span> = <span class="str">"http://proxy.example.com"</span>
+<span class="key">env_key</span> = <span class="str">"OPENAI_API_KEY"</span></div></div>
+  <div class="demo-panel" data-group="provider" data-val="bedrock"><div class="code-block"><span class="key">model_provider</span> = <span class="str">"amazon-bedrock"</span>
+<span class="key">model</span> = <span class="str">"&lt;bedrock-model-id&gt;"</span>
+
+<span class="key">[model_providers.amazon-bedrock.aws]</span>
+<span class="key">profile</span> = <span class="str">"default"</span>
+<span class="key">region</span> = <span class="str">"eu-central-1"</span></div></div>
+  <div class="demo-panel" data-group="provider" data-val="oss"><div class="code-block"><span class="cmt"># 搭配 --oss 使用的預設本機供應者</span>
+<span class="key">oss_provider</span> = <span class="str">"ollama"</span> <span class="cmt"># 或 "lmstudio"</span></div></div>
+  <div class="demo-panel" data-group="provider" data-val="azure"><div class="code-block"><span class="key">[model_providers.azure]</span>
+<span class="key">name</span> = <span class="str">"Azure"</span>
+<span class="key">base_url</span> = <span class="str">"https://YOUR_PROJECT_NAME.openai.azure.com/openai"</span>
+<span class="key">env_key</span> = <span class="str">"AZURE_OPENAI_API_KEY"</span>
+<span class="key">wire_api</span> = <span class="str">"responses"</span></div></div>
+
+  <h3>Observability 與 telemetry</h3>
+  <p>預設停用 OpenTelemetry 紀錄匯出, 可透過 [otel] 選擇加入, 追蹤 API 請求, SSE 事件, 提示與工具核准結果。</p>
+  <div class="code-block"><span class="key">[otel]</span>
+<span class="key">environment</span> = <span class="str">"staging"</span>   <span class="cmt"># 預設為 "dev"</span>
+<span class="key">exporter</span> = <span class="str">"none"</span>         <span class="cmt"># 設為 otlp-http 或 otlp-grpc 以送出事件</span>
+<span class="key">log_user_prompt</span> = <span class="kw">false</span>   <span class="cmt"># 除非明確啟用, 否則遮蔽使用者提示</span></div>
+  <div class="search-box">
+    <input type="text" id="otelSearch" placeholder="搜尋 OTel 指標..." oninput="filterList('otelSearch','otelTable')" />
+    <span class="filter-count" id="otelSearch-count"></span>
+  </div>
+  <div class="data-table-wrap">
+    <table class="data-table" id="otelTable">
+      <thead><tr><th>指標</th><th>類型</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr data-row><td><code>codex.api_request</code></td><td>counter</td><td>依 HTTP 狀態與成功與否計算的 API 請求數。</td></tr>
+        <tr data-row><td><code>codex.api_request.duration_ms</code></td><td>histogram</td><td>API 請求耗時, 毫秒。</td></tr>
+        <tr data-row><td><code>codex.sse_event</code></td><td>counter</td><td>依事件種類與成功與否計算的 SSE 事件數。</td></tr>
+        <tr data-row><td><code>codex.tool.call</code></td><td>counter</td><td>依工具名稱與成功與否計算的工具呼叫數。</td></tr>
+        <tr data-row><td><code>codex.tool.call.duration_ms</code></td><td>histogram</td><td>工具執行耗時, 依工具與結果分類。</td></tr>
+        <tr data-row><td><code>turn.e2e_duration_ms</code></td><td>histogram</td><td>一個完整回合的端對端耗時。</td></tr>
+        <tr data-row><td><code>turn.token_usage</code></td><td>histogram</td><td>每回合依 token 類型計算的用量。</td></tr>
+        <tr data-row><td><code>approval.requested</code></td><td>counter</td><td>工具核准請求結果, 核准, 拒絕或中止。</td></tr>
+        <tr data-row><td><code>mcp.call</code></td><td>counter</td><td>MCP 工具呼叫結果。</td></tr>
+        <tr data-row><td><code>hooks.run</code></td><td>counter</td><td>依 hook 名稱, 來源與狀態計算的 hook 執行數。</td></tr>
+        <tr data-row><td><code>thread.started</code></td><td>counter</td><td>新執行緒建立, 依工作目錄是否為 Git 儲存庫標記。</td></tr>
+        <tr data-row><td><code>multi_agent.spawn</code></td><td>counter</td><td>依角色計算的代理衍生數。</td></tr>
+        <tr data-row><td><code>memory.phase1</code></td><td>counter</td><td>記憶第一階段工作數, 依狀態分類。</td></tr>
+        <tr data-row><td><code>windows_sandbox.setup_success</code></td><td>counter</td><td>Windows sandbox 設定成功次數。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="info-box"><p>完整的 OTel 指標目錄涵蓋約 80 個指標, 橫跨執行時期傳輸, 回合與工具活動, 執行緒與功能, 記憶體與本機狀態, 以及 Windows sandbox 等分類, 此處列出最具代表性的一部分, 完整清單請參考原始文件的 Configuration Reference。</p></div>
+
+  <h3>其他常用選項</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">Hooks</div><div class="event-desc">從 hooks.json 或內嵌 [hooks] 表格載入生命週期 hooks, 專案層級 hooks 只在該 .codex 層受信任時載入。</div></div>
+    <div class="event-item"><div class="event-name">Metrics 與 feedback</div><div class="event-desc">用 [analytics] enabled = false 停用匿名使用量統計, 用 [feedback] enabled = false 停用 /feedback。</div></div>
+    <div class="event-item"><div class="event-name">History persistence</div><div class="event-desc">用 [history] persistence = "none" 停用本機工作階段逐字稿, 或用 max_bytes 限制檔案大小。</div></div>
+    <div class="event-item"><div class="event-name">Clickable citations</div><div class="event-desc">設定 file_opener 選擇 Codex 用來開啟引用檔案的 URI scheme, 例如 vscode。</div></div>
+    <div class="event-item"><div class="event-name">Notifications</div><div class="event-desc">用 notify 陣列指定外部程式, 在 agent-turn-complete 等事件發生時被觸發。</div></div>
+  </div>
+</section>
+
+<section id="config-reference">
+  <h2>Configuration Reference</h2>
+  <p>config.toml 與 requirements.toml 的完整參考, 這是一份極為龐大的技術清單, 下方提供可搜尋的常用鍵值精選, 原始文件收錄超過 260 個 config.toml 鍵與約 100 個 requirements.toml 鍵, 此處聚焦在最常用的部分, 完整清單請查閱原始 Markdown。</p>
+
+  <h3>config.toml 常用鍵值</h3>
+  <div class="search-box">
+    <input type="text" id="cfgRefSearch" placeholder="搜尋設定鍵值..." oninput="filterList('cfgRefSearch','cfgRefTable')" />
+    <span class="filter-count" id="cfgRefSearch-count"></span>
+  </div>
+  <div class="data-table-wrap">
+    <table class="data-table" id="cfgRefTable">
+      <thead><tr><th>Key</th><th>類型 / 值</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr data-row><td><code>model</code></td><td>string</td><td>要使用的模型, 例如 gpt-5.6。</td></tr>
+        <tr data-row><td><code>model_provider</code></td><td>string</td><td>來自 model_providers 的供應者 id, 預設 openai。</td></tr>
+        <tr data-row><td><code>model_reasoning_effort</code></td><td>minimal | low | medium | high | xhigh</td><td>調整支援模型的推理強度。</td></tr>
+        <tr data-row><td><code>model_verbosity</code></td><td>low | medium | high</td><td>GPT-5 Responses API 的詳細程度覆寫。</td></tr>
+        <tr data-row><td><code>model_context_window</code></td><td>number</td><td>目前模型可用的情境視窗 token 數。</td></tr>
+        <tr data-row><td><code>approval_policy</code></td><td>untrusted | on-request | never | granular</td><td>控制 Codex 執行指令前何時暫停等待核准。</td></tr>
+        <tr data-row><td><code>approvals_reviewer</code></td><td>user | auto_review</td><td>誰審查符合資格的核准提示。</td></tr>
+        <tr data-row><td><code>sandbox_mode</code></td><td>read-only | workspace-write | danger-full-access</td><td>指令執行期間的檔案系統與網路沙箱政策。</td></tr>
+        <tr data-row><td><code>sandbox_workspace_write.network_access</code></td><td>boolean</td><td>允許 workspace-write 沙箱內的對外網路存取。</td></tr>
+        <tr data-row><td><code>sandbox_workspace_write.writable_roots</code></td><td>array&lt;string&gt;</td><td>workspace-write 模式下額外的可寫入根目錄。</td></tr>
+        <tr data-row><td><code>default_permissions</code></td><td>string</td><td>套用到沙箱化工具呼叫的預設權限設定檔名稱。</td></tr>
+        <tr data-row><td><code>allow_login_shell</code></td><td>boolean</td><td>允許 shell 型工具使用登入 shell 語意。</td></tr>
+        <tr data-row><td><code>web_search</code></td><td>disabled | cached | indexed | live</td><td>網頁搜尋模式, 預設 cached。</td></tr>
+        <tr data-row><td><code>personality</code></td><td>none | friendly | pragmatic</td><td>支援個性設定的模型的預設溝通風格。</td></tr>
+        <tr data-row><td><code>history.persistence</code></td><td>save-all | none</td><td>控制是否把工作階段逐字稿存到 history.jsonl。</td></tr>
+        <tr data-row><td><code>history.max_bytes</code></td><td>number</td><td>設定後限制歷史檔案大小, 捨棄最舊項目。</td></tr>
+        <tr data-row><td><code>file_opener</code></td><td>vscode | vscode-insiders | windsurf | cursor | none</td><td>從 Codex 輸出開啟引用檔案時使用的 URI scheme。</td></tr>
+        <tr data-row><td><code>hide_agent_reasoning</code></td><td>boolean</td><td>在 TUI 與 codex exec 輸出中抑制推理事件。</td></tr>
+        <tr data-row><td><code>show_raw_agent_reasoning</code></td><td>boolean</td><td>當模型輸出原始推理內容時顯示出來。</td></tr>
+        <tr data-row><td><code>notify</code></td><td>array&lt;string&gt;</td><td>收到通知事件時呼叫的指令。</td></tr>
+        <tr data-row><td><code>log_dir</code></td><td>string (path)</td><td>Codex 寫入紀錄檔案的目錄。</td></tr>
+        <tr data-row><td><code>mcp_servers.&lt;id&gt;.command</code></td><td>string</td><td>啟動 MCP stdio 伺服器的指令。</td></tr>
+        <tr data-row><td><code>mcp_servers.&lt;id&gt;.url</code></td><td>string</td><td>MCP streamable HTTP 伺服器的位址。</td></tr>
+        <tr data-row><td><code>mcp_servers.&lt;id&gt;.enabled</code></td><td>boolean</td><td>停用某 MCP 伺服器而不移除其設定。</td></tr>
+        <tr data-row><td><code>mcp_servers.&lt;id&gt;.default_tools_approval_mode</code></td><td>auto | prompt | writes | approve</td><td>該伺服器工具的預設核准行為。</td></tr>
+        <tr data-row><td><code>memories.use_memories</code></td><td>boolean</td><td>控制 Codex 是否把既有記憶注入未來工作階段。</td></tr>
+        <tr data-row><td><code>memories.generate_memories</code></td><td>boolean</td><td>控制新任務能否作為記憶產生的輸入。</td></tr>
+        <tr data-row><td><code>agents.max_threads</code></td><td>number</td><td>可同時開啟的代理執行緒上限, 預設 6。</td></tr>
+        <tr data-row><td><code>agents.max_depth</code></td><td>number</td><td>衍生代理執行緒的最大巢狀深度, 預設 1。</td></tr>
+        <tr data-row><td><code>skills.config.&lt;index&gt;.enabled</code></td><td>boolean</td><td>啟用或停用參照的 skill。</td></tr>
+        <tr data-row><td><code>tui.notifications</code></td><td>boolean | array&lt;string&gt;</td><td>啟用 TUI 通知, 可選擇限制特定事件類型。</td></tr>
+        <tr data-row><td><code>tui.theme</code></td><td>string</td><td>語法標色主題覆寫。</td></tr>
+        <tr data-row><td><code>tui.vim_mode_default</code></td><td>boolean</td><td>讓輸入框以 Vim 一般模式而非插入模式啟動。</td></tr>
+        <tr data-row><td><code>otel.exporter</code></td><td>none | otlp-http | otlp-grpc</td><td>選擇 OpenTelemetry 匯出器。</td></tr>
+        <tr data-row><td><code>analytics.enabled</code></td><td>boolean</td><td>啟用或停用這台機器 / profile 的分析功能。</td></tr>
+        <tr data-row><td><code>feedback.enabled</code></td><td>boolean</td><td>啟用透過 /feedback 送出回饋。</td></tr>
+        <tr data-row><td><code>windows.sandbox</code></td><td>unelevated | elevated</td><td>原生 Windows 上執行時, Windows 專屬的原生 sandbox 模式。</td></tr>
+        <tr data-row><td><code>project_root_markers</code></td><td>array&lt;string&gt;</td><td>用來搜尋上層目錄以找出專案根目錄的標記檔名清單。</td></tr>
+        <tr data-row><td><code>project_doc_max_bytes</code></td><td>number</td><td>建立專案指示時從 AGENTS.md 讀取的最大位元組數。</td></tr>
+        <tr data-row><td><code>shell_environment_policy.inherit</code></td><td>all | core | none</td><td>衍生子行程時的基準環境變數繼承方式。</td></tr>
+        <tr data-row><td><code>tool_output_token_limit</code></td><td>number</td><td>歷史紀錄中儲存單一工具輸出的 token 預算。</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>requirements.toml 常用鍵值</h3>
+  <div class="search-box">
+    <input type="text" id="reqRefSearch" placeholder="搜尋管理員強制設定鍵值..." oninput="filterList('reqRefSearch','reqRefTable')" />
+    <span class="filter-count" id="reqRefSearch-count"></span>
+  </div>
+  <div class="data-table-wrap">
+    <table class="data-table" id="reqRefTable">
+      <thead><tr><th>Key</th><th>類型 / 值</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr data-row><td><code>allowed_sandbox_modes</code></td><td>array&lt;string&gt;</td><td>sandbox_mode 允許的值。</td></tr>
+        <tr data-row><td><code>allowed_approval_policies</code></td><td>array&lt;string&gt;</td><td>approval_policy 允許的值。</td></tr>
+        <tr data-row><td><code>allowed_permission_profiles</code></td><td>table&lt;boolean&gt;</td><td>允許使用的權限設定檔完整清單。</td></tr>
+        <tr data-row><td><code>allowed_web_search_modes</code></td><td>array&lt;string&gt;</td><td>web_search 允許的值, disabled 一律允許。</td></tr>
+        <tr data-row><td><code>default_permissions</code></td><td>string</td><td>管理員指定的預設權限設定檔。</td></tr>
+        <tr data-row><td><code>enforce_residency</code></td><td>string</td><td>要求 Codex 服務流量使用支援的資料落地位置, 目前接受 us。</td></tr>
+        <tr data-row><td><code>features.computer_use</code></td><td>boolean</td><td>設為 false 可停用 Computer Use, Record &amp; Replay 與相關安裝流程。</td></tr>
+        <tr data-row><td><code>features.memories</code></td><td>boolean</td><td>為受管理使用者固定 Memories 的可用性。</td></tr>
+        <tr data-row><td><code>features.multi_agent</code></td><td>boolean</td><td>為受管理使用者固定多代理功能的可用性。</td></tr>
+        <tr data-row><td><code>features.browser_use_full_cdp_access</code></td><td>boolean</td><td>設為 false 可停用完整 CDP 存取, 包含 Browser Developer mode。</td></tr>
+        <tr data-row><td><code>computer_use.allow_locked_computer_use</code></td><td>boolean</td><td>設為 false 可阻止裝置鎖定後 Computer Use 繼續運作。</td></tr>
+        <tr data-row><td><code>guardian_policy_config</code></td><td>string</td><td>管理員指定的自動審查 Markdown 政策指示, 優先於本機 [auto_review].policy。</td></tr>
+        <tr data-row><td><code>hooks.managed_dir</code></td><td>string (absolute path)</td><td>macOS 與 Linux 上受管理 hook 腳本所在目錄。</td></tr>
+        <tr data-row><td><code>marketplaces.restrict_to_allowed_sources</code></td><td>boolean</td><td>為 true 時要求使用者設定的市集來源符合允許清單。</td></tr>
+        <tr data-row><td><code>mcp_servers.&lt;id&gt;.identity</code></td><td>table</td><td>單一 MCP 伺服器的身分規則, 未列入允許清單者會被停用。</td></tr>
+        <tr data-row><td><code>models.new_thread.model</code></td><td>string</td><td>新執行緒的預設模型, 明確覆寫仍優先。</td></tr>
+        <tr data-row><td><code>rules.prefix_rules</code></td><td>array&lt;table&gt;</td><td>強制執行的指令前綴規則清單, 只能是 prompt 或 forbidden。</td></tr>
+        <tr data-row><td><code>windows.allowed_sandbox_implementations</code></td><td>array&lt;string&gt;</td><td>允許的原生 Windows sandbox 實作, elevated 或 unelevated。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="env-vars">
+  <h2>Environment variables</h2>
+  <p>Codex 支援的環境變數, Codex 用 config.toml 儲存持久性設定, 環境變數則用於 shell 範圍的覆寫, 自動化密鑰, 安裝程式行為或診斷。</p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>變數</th><th>用途</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td><code>CODEX_HOME</code></td><td>CLI, IDE, app-server, 安裝程式</td><td>設定 Codex 狀態的根目錄, 預設 ~/.codex, 設定後該目錄必須已存在。</td></tr>
+        <tr><td><code>CODEX_SQLITE_HOME</code></td><td>CLI 與 app-server 狀態</td><td>設定 SQLite 支援狀態的儲存位置, sqlite_home 設定優先。</td></tr>
+        <tr><td><code>CODEX_NON_INTERACTIVE</code></td><td>安裝腳本</td><td>設為 1 略過安裝程式提示, 適合腳本化安裝。</td></tr>
+        <tr><td><code>CODEX_INSTALL_DIR</code></td><td>安裝腳本</td><td>變更 codex 指令的安裝位置。</td></tr>
+        <tr><td><code>CODEX_API_KEY</code></td><td>codex exec</td><td>為單次非互動執行提供 API 金鑰。</td></tr>
+        <tr><td><code>CODEX_ACCESS_TOKEN</code></td><td>CLI, app-server</td><td>為受信任自動化提供 ChatGPT 或 Codex access token。</td></tr>
+        <tr><td><code>CODEX_CA_CERTIFICATE</code></td><td>HTTPS, 登入, WebSocket</td><td>指向 PEM CA bundle, 適合企業 TLS 攔截或私有根憑證環境。</td></tr>
+        <tr><td><code>SSL_CERT_FILE</code></td><td>HTTPS, 登入, WebSocket</td><td>CODEX_CA_CERTIFICATE 未設定時的備援 PEM CA bundle 路徑。</td></tr>
+        <tr><td><code>RUST_LOG</code></td><td>CLI 與 app-server</td><td>控制 Rust 紀錄篩選與詳細程度, 例如 debug, info, trace。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="code-block"><span class="cmt"># 無人值守安裝</span>
+<span class="fn">curl</span> -fsSL https://chatgpt.com/codex/install.sh | <span class="key">CODEX_NON_INTERACTIVE=1</span> <span class="fn">sh</span>
+
+<span class="cmt"># 開啟純文字 TUI 紀錄以除錯</span>
+<span class="key">RUST_LOG=debug</span> <span class="fn">codex</span> -c <span class="str">log_dir=./.codex-log</span></div>
+</section>
+
+<section id="sample-config">
+  <h2>Sample Configuration</h2>
+  <p>一份完整的 config.toml 範例, 可直接複製調整, 涵蓋 Codex 從 config.toml 讀取的多數鍵值, 附上預設行為, 建議值與簡短說明, 只需複製你需要的鍵值與區塊到 ~/.codex/config.toml 或專案層級的 .codex/config.toml, 再依你的需求調整。以下依分類選擇檢視。</p>
+
+  <div class="chip-row" data-chipgroup="sample">
+    <span class="chip active" data-group="sample" data-val="model" onclick="chipSelect('sample','model')">核心模型選擇</span>
+    <span class="chip" data-group="sample" data-val="reasoning" onclick="chipSelect('sample','reasoning')">推理與詳細程度</span>
+    <span class="chip" data-group="sample" data-val="approval" onclick="chipSelect('sample','approval')">核准與 Sandbox</span>
+    <span class="chip" data-group="sample" data-val="auth" onclick="chipSelect('sample','auth')">驗證與登入</span>
+    <span class="chip" data-group="sample" data-val="ui" onclick="chipSelect('sample','ui')">UI 與通知</span>
+    <span class="chip" data-group="sample" data-val="agents" onclick="chipSelect('sample','agents')">Agents 與 Skills</span>
+    <span class="chip" data-group="sample" data-val="network" onclick="chipSelect('sample','network')">沙箱網路設定</span>
+    <span class="chip" data-group="sample" data-val="features" onclick="chipSelect('sample','features')">功能旗標</span>
+    <span class="chip" data-group="sample" data-val="providers" onclick="chipSelect('sample','providers')">Model Providers</span>
+    <span class="chip" data-group="sample" data-val="otel" onclick="chipSelect('sample','otel')">OpenTelemetry</span>
+  </div>
+  <div class="demo-panel visible" data-group="sample" data-val="model"><div class="code-block"><span class="key">model</span> = <span class="str">"gpt-5.6"</span>
+<span class="cmt"># personality = "pragmatic"</span>
+<span class="key">model_provider</span> = <span class="str">"openai"</span>
+<span class="cmt"># oss_provider = "ollama"</span>
+<span class="cmt"># model_context_window = 128000</span>
+<span class="cmt"># tool_output_token_limit = 12000</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="reasoning"><div class="code-block"><span class="cmt"># model_reasoning_effort = "medium"</span>
+<span class="cmt"># plan_mode_reasoning_effort = "high"</span>
+<span class="cmt"># model_reasoning_summary = "auto"</span>
+<span class="cmt"># model_verbosity = "medium"</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="approval"><div class="code-block"><span class="key">approval_policy</span> = <span class="str">"on-request"</span>
+<span class="key">allow_login_shell</span> = <span class="kw">true</span>
+<span class="key">sandbox_mode</span> = <span class="str">"read-only"</span>
+<span class="cmt"># default_permissions = ":workspace"</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="auth"><div class="code-block"><span class="key">cli_auth_credentials_store</span> = <span class="str">"file"</span>
+<span class="key">chatgpt_base_url</span> = <span class="str">"https://chatgpt.com/backend-api/"</span>
+<span class="cmt"># openai_base_url = "https://us.api.openai.com/v1"</span>
+<span class="cmt"># forced_chatgpt_workspace_id = "&lt;uuid&gt;"</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="ui"><div class="code-block"><span class="cmt"># notify = ["notify-send", "Codex"]</span>
+<span class="key">[tui]</span>
+<span class="cmt"># notifications = true</span>
+<span class="cmt"># notification_method = "auto"</span>
+<span class="cmt"># animations = true</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="agents"><div class="code-block"><span class="key">[agents]</span>
+<span class="cmt"># max_threads = 6</span>
+<span class="cmt"># max_depth = 1</span>
+
+<span class="key">[[skills.config]]</span>
+<span class="key">path</span> = <span class="str">"/Users/me/.agents/skills/my-skill/SKILL.md"</span>
+<span class="key">enabled</span> = <span class="kw">true</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="network"><div class="code-block"><span class="key">[shell_environment_policy]</span>
+<span class="key">inherit</span> = <span class="str">"none"</span>
+<span class="key">include_only</span> = [<span class="str">"PATH"</span>, <span class="str">"HOME"</span>]
+
+<span class="cmt"># [features.network_proxy]</span>
+<span class="cmt"># enabled = true</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="features"><div class="code-block"><span class="key">[features]</span>
+<span class="key">memories</span> = <span class="kw">false</span>
+<span class="key">hooks</span> = <span class="kw">true</span>
+<span class="key">multi_agent</span> = <span class="kw">true</span>
+<span class="key">fast_mode</span> = <span class="kw">true</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="providers"><div class="code-block"><span class="key">[model_providers.local_ollama]</span>
+<span class="key">name</span> = <span class="str">"Ollama"</span>
+<span class="key">base_url</span> = <span class="str">"http://localhost:11434/v1"</span></div></div>
+  <div class="demo-panel" data-group="sample" data-val="otel"><div class="code-block"><span class="key">[otel]</span>
+<span class="cmt"># environment = "staging"</span>
+<span class="cmt"># exporter = "none"</span>
+<span class="cmt"># log_user_prompt = false</span></div></div>
+  <div class="takeaway"><p>此區塊為代表性精簡版本, 完整範例檔案涵蓋約 24 個分類, 超過 1100 行附註解的設定, 若需要完整逐行對照, 請查閱原始 Configuration.md 的 Sample Configuration 章節。</p></div>
+</section>
+
+<section id="agents-md">
+  <h2>Custom instructions with AGENTS.md</h2>
+  <p>為 Codex 提供專案的額外指示與情境, Codex 在開始任何工作前會先讀取 AGENTS.md 檔案, 透過疊加全域指引與專案專屬覆寫, 讓你在開啟任何儲存庫時都能從一致的期望開始。</p>
+
+  <h3>Codex 如何探索指引</h3>
+  <div class="stage-tabs" data-group="agentsStep">
+    <div class="stage-tab active" data-group="agentsStep" data-step="0" onclick="goStep('agentsStep',0)">1 · 全域範圍</div>
+    <div class="stage-tab" data-group="agentsStep" data-step="1" onclick="goStep('agentsStep',1)">2 · 專案範圍</div>
+    <div class="stage-tab" data-group="agentsStep" data-step="2" onclick="goStep('agentsStep',2)">3 · 合併順序</div>
+  </div>
+  <div class="demo-panel visible" data-group="agentsStep" data-step="0"><p>在你的 Codex 家目錄, 預設 ~/.codex, Codex 若存在則讀取 AGENTS.override.md, 否則讀取 AGENTS.md, 此層只使用第一個非空檔案。</p></div>
+  <div class="demo-panel" data-group="agentsStep" data-step="1"><p>從專案根目錄開始, 通常是 Git 根目錄, 向下走到目前工作目錄, 每個目錄依序檢查 AGENTS.override.md, AGENTS.md, 以及 project_doc_fallback_filenames 中的備援名稱。</p></div>
+  <div class="demo-panel" data-group="agentsStep" data-step="2"><p>Codex 從根目錄往下串接檔案, 以空行分隔, 越接近你目前目錄的檔案會出現在組合提示的越後面, 因此優先權更高。</p></div>
+  <span class="step-indicator" data-indicator="agentsStep">步驟 1 / 3</span>
+  <p>Codex 會跳過空檔案, 並在組合大小達到 project_doc_max_bytes 限制 (預設 32 KiB) 後停止加入檔案。</p>
+
+  <h3>建立全域指引</h3>
+  <div class="code-block"><span class="cmt"># ~/.codex/AGENTS.md</span>
+
+<span class="cmt">## 工作約定
+
+- 修改 JavaScript 檔案後一律執行 npm test。
+- 安裝相依套件時優先使用 pnpm。
+- 新增正式相依套件前先請求確認。</span></div>
+  <p>使用 ~/.codex/AGENTS.override.md 可在不刪除基礎檔案的情況下做臨時的全域覆寫。</p>
+
+  <h3>疊加專案指示</h3>
+  <div class="code-block"><span class="cmt"># AGENTS.md
+
+## 儲存庫期望
+
+- 開 pull request 前先執行 npm run lint。
+- 變更行為時在 docs/ 中記錄公開工具。</span></div>
+  <p>在需要不同規則的巢狀目錄中加入覆寫, 例如在 services/payments/ 建立 AGENTS.override.md 定義該服務專屬的規則, Codex 會依序回報全域檔案, 儲存庫根目錄的 AGENTS.md, 再到 payments 覆寫檔案。</p>
+
+  <h3>自訂備援檔名</h3>
+  <div class="code-block"><span class="key">project_doc_fallback_filenames</span> = [<span class="str">"TEAM_GUIDE.md"</span>, <span class="str">".agents.md"</span>]
+<span class="key">project_doc_max_bytes</span> = <span class="str">65536</span></div>
+
+  <h3>疑難排解</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">什麼都沒載入</div><div class="event-desc">確認你在正確的儲存庫中, 且指示檔案不是空的。</div></div>
+    <div class="event-item"><div class="event-name">出現錯誤的指引</div><div class="event-desc">留意目錄樹或 Codex 家目錄中較上層的 AGENTS.override.md。</div></div>
+    <div class="event-item"><div class="event-name">Codex 忽略備援名稱</div><div class="event-desc">確認 project_doc_fallback_filenames 沒有拼字錯誤, 並重新啟動 Codex。</div></div>
+    <div class="event-item"><div class="event-name">指示被截斷</div><div class="event-desc">提高 project_doc_max_bytes, 或把大型檔案拆到巢狀目錄中。</div></div>
+  </div>
+</section>
+
+<section id="subagents">
+  <h2>Subagents</h2>
+  <p>在 ChatGPT 與 Codex 中使用子代理, 並設定自訂 Codex 代理。ChatGPT Work 與 Codex 可透過平行衍生專門化代理並在單一回應中彙整結果, 對高度平行的複雜任務特別有幫助, 例如程式碼庫探索或實作多步驟功能計畫。</p>
+
+  <h3>為何子代理工作流程有幫助</h3>
+  <div class="two-col">
+    <div class="col-card"><div class="col-card-title">情境污染與情境腐化</div><p>當探索紀錄, 測試日誌, 堆疊追蹤等吵雜的中間輸出灌入主對話, 有用資訊會被淹沒, 對話品質也會隨內容增多而下降。</p></div>
+    <div class="col-card"><div class="col-card-title">子代理如何幫忙</div><p>讓主代理專注於需求, 決策與最終產出, 讓專門化子代理平行處理探索, 測試或紀錄分析, 並回傳摘要而非原始中間輸出。</p></div>
+  </div>
+  <div class="info-box"><p>把平行代理用於偏讀取的任務, 例如探索, 測試, 分類與摘要, 對偏寫入的平行工作流程要更謹慎, 因為多個代理同時編輯程式碼可能造成衝突並增加協調成本。</p></div>
+
+  <h3>觸發子代理工作流程</h3>
+  <div class="code-block"><span class="str">Review this branch with parallel subagents. Spawn one subagent for security
+risks, one for test gaps, and one for maintainability. Wait for all three,
+then summarize the findings by category with file references.</span></div>
+
+  <h3>選擇模型與推理強度</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">gpt-5.6</div><div class="desc">從這裡開始處理要求較高的代理, 適合需要規劃, 工具使用, 驗證與跟進的模糊多步驟工作。</div></div>
+    <div class="field"><div class="name">gpt-5.6-terra</div><div class="desc">適合偏好速度與效率而非深度的代理, 例如探索, 大量讀取掃描或處理輔助文件。</div></div>
+    <div class="field"><div class="name">gpt-5.4</div><div class="desc">當工作流程固定使用 GPT-5.4 時使用, 結合強大的程式撰寫, 推理與工具使用能力。</div></div>
+    <div class="field"><div class="name">gpt-5.3-codex-spark</div><div class="desc">若你有 ChatGPT Pro, 在延遲比廣泛能力更重要時使用這個研究預覽模型。</div></div>
+  </div>
+  <p>agents.max_depth 控制巢狀深度, 預設為 1, 讓根執行緒可以衍生直接子代理, 但阻止那些子代理再往下衍生。</p>
+
+  <h3>自訂代理</h3>
+  <p>Codex 內建 default, worker 與 explorer 三種代理, 若要定義自己的自訂代理, 在 ~/.codex/agents/ (個人) 或 .codex/agents/ (專案) 下新增獨立的 TOML 檔案, 每個檔案必須定義 name, description 與 developer_instructions。</p>
+  <div class="code-block"><span class="key">name</span> = <span class="str">"reviewer"</span>
+<span class="key">description</span> = <span class="str">"PR reviewer focused on correctness, security, and missing tests."</span>
+<span class="key">developer_instructions</span> = <span class="str">"""
+Review code like an owner.
+Prioritize correctness, security, behavior regressions, and missing test coverage.
+"""</span>
+<span class="key">nickname_candidates</span> = [<span class="str">"Atlas"</span>, <span class="str">"Delta"</span>, <span class="str">"Echo"</span>]</div>
+
+  <h3>用子代理批次處理 CSV, 實驗性</h3>
+  <p>當你有許多對應到單一資料列的相似任務時使用 spawn_agents_on_csv, Codex 讀取 CSV, 為每一列衍生一個 worker 子代理, 等待整批完成後把彙整結果匯出成 CSV。</p>
+  <div class="code-block"><span class="str">Create /tmp/components.csv with columns path,owner and one row per frontend
+component. Then call spawn_agents_on_csv with csv_path, id_column, instruction,
+output_csv_path and output_schema.</span></div>
+</section>
+
+<section id="speed">
+  <h2>Speed</h2>
+  <p>在不犧牲智慧程度的情況下提升速度, ChatGPT Work 與 Codex 共用使用量, ChatGPT 中的 Work 用量與 Codex 使用相同的定價, 額度與使用限制。</p>
+
+  <h3>Fast mode</h3>
+  <p>讓支援的模型速度提升 1.5 倍, 但以更高費率消耗額度, 目前支援 GPT-5.6, GPT-5.5 與 GPT-5.4, GPT-5.6 與 GPT-5.5 以標準費率的 2.5 倍消耗額度, GPT-5.4 則為 2 倍。</p>
+  <div class="code-block"><span class="cmt"># 在 CLI 中切換 Fast mode</span>
+<span class="fn">/fast</span> on
+<span class="fn">/fast</span> off
+<span class="fn">/fast</span> status</div>
+
+  <h3>Codex-Spark</h3>
+  <p>GPT-5.3-Codex-Spark 是另一個更快但能力較弱的獨立模型, 針對接近即時的程式撰寫迭代最佳化, 與 Fast mode 不同, Codex-Spark 是獨立的模型選項, 有自己的使用限制, 研究預覽期間僅提供給 ChatGPT Pro 訂閱者。</p>
+</section>
+
+<section id="rules">
+  <h2>Rules</h2>
+  <p>控制 Codex 可以在沙箱外執行哪些指令, 此功能為實驗性, 未來可能變動。</p>
+
+  <h3>建立規則檔案</h3>
+  <div class="code-block"><span class="cmt"># 在沙箱外執行 gh pr view 前先詢問</span>
+<span class="fn">prefix_rule</span>(
+    <span class="key">pattern</span> = [<span class="str">"gh"</span>, <span class="str">"pr"</span>, <span class="str">"view"</span>],
+    <span class="key">decision</span> = <span class="str">"prompt"</span>,
+    <span class="key">justification</span> = <span class="str">"Viewing PRs is allowed with approval"</span>,
+    <span class="key">match</span> = [<span class="str">"gh pr view 7888"</span>],
+    <span class="key">not_match</span> = [<span class="str">"gh pr --repo openai/codex view 7888"</span>],
+)</div>
+
+  <h3>規則欄位</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">pattern</div><div class="desc">必要, 定義要比對的指令前綴。</div></div>
+    <div class="field"><div class="name">decision</div><div class="desc">預設 allow, 可為 allow, prompt 或 forbidden, 多條規則同時符合時採最嚴格的結果。</div></div>
+    <div class="field"><div class="name">justification</div><div class="desc">選填, 說明規則存在的理由, 會顯示在核准提示或拒絕訊息中。</div></div>
+    <div class="field"><div class="name">match / not_match</div><div class="desc">選填的行內單元測試範例, 幫助你在規則生效前抓出錯誤。</div></div>
+  </div>
+
+  <h3>Shell wrapper 與複合指令</h3>
+  <p>當 shell 腳本是僅由安全運算子連接的純字面詞組成的線性指令鏈時, Codex 會用 tree-sitter 解析並拆成個別指令分別套用規則, 即使允許 git add, Codex 也不會自動允許 git add . &amp;&amp; rm -rf /, 因為 rm -rf / 的部分會被獨立評估。當腳本使用重新導向, 替換, 環境變數或萬用字元等較進階的 shell 特性時, Codex 不會嘗試拆解, 而是把整個呼叫視為單一指令套用規則。</p>
+  <div class="code-block"><span class="fn">codex</span> <span class="key">execpolicy</span> <span class="key">check</span> --pretty --rules ~/.codex/rules/default.rules -- gh pr view 7888</div>
+</section>
+
+<section id="record-replay">
+  <h2>Record &amp; Replay</h2>
+  <p>示範一次工作流程, 讓 Codex 把它變成可重複使用的 skill。此功能限於 macOS, 且初期不包含歐洲經濟區, 英國與瑞士, 需要 Computer Use 可用並已啟用。</p>
+
+  <h3>開始錄製</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 開啟 Plugins</div><div class="event-desc">在桌面應用程式選擇 ChatGPT Work 或 Codex, 開啟 Plugins。</div></div>
+    <div class="event-item"><div class="event-name">2 · 選擇 Record a skill</div><div class="event-desc">打開加號選單並選擇 Record a skill。</div></div>
+    <div class="event-item"><div class="event-name">3 · 審視提示並送出</div><div class="event-desc">檢視建議的提示, 提供有用的情境並送出。</div></div>
+    <div class="event-item"><div class="event-name">4 · 核准錄製</div><div class="event-desc">Codex 請求錄製動作的權限時予以核准。</div></div>
+    <div class="event-item"><div class="event-name">5 · 示範並停止</div><div class="event-desc">在 Mac 上執行工作流程, 完成後從選單或告訴 Codex 停止錄製。</div></div>
+  </div>
+  <p>停止錄製後, Codex 會檢視擷取的工作流程並草擬一個 skill, 說明何時使用, 需要哪些輸入, 步驟為何以及如何驗證結果, 你也可以要求 Codex 進一步精修這個 skill。</p>
+
+  <h3>重播工作流程</h3>
+  <p>開始新任務並請 Codex 使用產生的 skill, 提供這次不同的值, 例如要上傳的檔案或要建立的 issue, Codex 會用這個 skill 作為任務的可重複使用情境。</p>
+
+  <h3>錄製小技巧</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">保持簡短完整</div><div class="event-desc">讓示範保持簡短且完整。</div></div>
+    <div class="event-item"><div class="event-name">先說明目標</div><div class="event-desc">錄製前先讓 Codex 知道你的目標與可能變動的輸入。</div></div>
+    <div class="event-item"><div class="event-name">避免機密資料</div><div class="event-desc">使用真實情境的輸入, 但避免密鑰與敏感資料。</div></div>
+    <div class="event-item"><div class="event-name">錄製後精修</div><div class="event-desc">補充隱藏的偏好, 例如命名慣例或欄位預設值。</div></div>
+  </div>
+</section>
+
+<section id="mcp">
+  <h2>Model Context Protocol</h2>
+  <p>讓 Codex 存取第三方工具與情境。MCP 連接模型與工具及情境, 用它讓 ChatGPT 或 Codex 存取第三方文件, 或與瀏覽器, Figma 等開發者工具互動。</p>
+
+  <h3>支援的 MCP 功能</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">STDIO servers</div><div class="desc">以本機行程執行的伺服器, 由指令啟動, 支援環境變數。</div></div>
+    <div class="field"><div class="name">Streamable HTTP servers</div><div class="desc">以位址存取的伺服器, 支援 bearer token, OAuth 與 ChatGPT 工作階段驗證。</div></div>
+    <div class="field"><div class="name">Server instructions</div><div class="desc">Codex 讀取初始化時回傳的 MCP instructions 欄位, 作為伺服器層級的指引。</div></div>
+  </div>
+
+  <h3>連接 MCP 伺服器</h3>
+  <div class="chip-row" data-chipgroup="mcpSetup">
+    <span class="chip active" data-group="mcpSetup" data-val="desktop" onclick="chipSelect('mcpSetup','desktop')">桌面應用程式</span>
+    <span class="chip" data-group="mcpSetup" data-val="cli" onclick="chipSelect('mcpSetup','cli')">CLI</span>
+    <span class="chip" data-group="mcpSetup" data-val="ide" onclick="chipSelect('mcpSetup','ide')">IDE 擴充功能</span>
+    <span class="chip" data-group="mcpSetup" data-val="toml" onclick="chipSelect('mcpSetup','toml')">config.toml</span>
+  </div>
+  <div class="demo-panel visible" data-group="mcpSetup" data-val="desktop"><p>開啟 Settings, 選擇 MCP servers, 選擇 Add server, 輸入名稱, 選擇 STDIO 或 Streamable HTTP 並提供指令或網址, 儲存後選擇 Restart。</p></div>
+  <div class="demo-panel" data-group="mcpSetup" data-val="cli"><div class="code-block"><span class="fn">codex</span> <span class="key">mcp</span> <span class="key">add</span> context7 -- npx -y @upstash/context7-mcp</div><p>執行 codex mcp list 檢視已設定的伺服器, 對支援 OAuth 的伺服器執行 codex mcp login &lt;server-name&gt;。</p></div>
+  <div class="demo-panel" data-group="mcpSetup" data-val="ide"><p>打開齒輪選單選擇 MCP servers, 選擇 Add server, 輸入名稱, 選擇 STDIO 或 Streamable HTTP 並提供指令或網址, 儲存後選擇 Restart extension。</p></div>
+  <div class="demo-panel" data-group="mcpSetup" data-val="toml"><div class="code-block"><span class="key">[mcp_servers.figma]</span>
+<span class="key">url</span> = <span class="str">"https://mcp.figma.com/mcp"</span>
+<span class="key">bearer_token_env_var</span> = <span class="str">"FIGMA_OAUTH_TOKEN"</span></div></div>
+
+  <h3>實用的 MCP 伺服器範例</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">OpenAI Docs MCP</div><div class="event-desc">搜尋並閱讀 OpenAI 開發者文件。</div></div>
+    <div class="event-item"><div class="event-name">Context7</div><div class="event-desc">連接最新的開發者文件。</div></div>
+    <div class="event-item"><div class="event-name">Figma Local and Remote</div><div class="event-desc">存取你的 Figma 設計稿。</div></div>
+    <div class="event-item"><div class="event-name">Playwright / Chrome Developer Tools</div><div class="event-desc">用 Playwright 或 CDP 控制並檢視瀏覽器。</div></div>
+    <div class="event-item"><div class="event-name">Sentry / GitHub</div><div class="event-desc">存取 Sentry 紀錄, 或管理 git 指令以外的 GitHub 功能。</div></div>
+  </div>
+</section>
+
+<section id="windows-app">
+  <h2>ChatGPT desktop app for Windows</h2>
+  <p>在 Windows 上使用 ChatGPT 桌面應用程式, 支援原生 sandbox 與 PowerShell, 支援 worktrees, 排程任務, Git 功能, 內建瀏覽器, 檔案預覽, 外掛與 skills, 可原生使用 PowerShell 與 Windows sandbox 執行, 或設定在 WSL2 中執行。</p>
+  <div class="code-block"><span class="fn">winget</span> <span class="key">install</span> --id 9PLM9XGG6VKS -s msstore</div>
+
+  <h3>常用開發工具</h3>
+  <div class="code-block"><span class="fn">winget</span> install --id Git.Git
+<span class="fn">winget</span> install --id OpenJS.NodeJS.LTS
+<span class="fn">winget</span> install --id Python.Python.3.14
+<span class="fn">winget</span> install --id Microsoft.DotNet.SDK.10
+<span class="fn">winget</span> install --id GitHub.cli</div>
+
+  <h3>疑難排解</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">需要提升的權限</div><div class="event-desc">以系統管理員身分執行桌面應用程式, Codex 代理會繼承該權限層級。</div></div>
+    <div class="event-item"><div class="event-name">PowerShell 執行原則阻擋</div><div class="event-desc">將執行原則設為 RemoteSigned 以允許腳本執行。</div></div>
+    <div class="event-item"><div class="event-name">與 WSL 共享設定, 驗證與工作階段</div><div class="event-desc">同步 WSL 的 ~/.codex 與 %USERPROFILE%\.codex, 或設定 CODEX_HOME 指向 Windows 目錄。</div></div>
+    <div class="event-item"><div class="event-name">Git 功能無法使用</div><div class="event-desc">用 winget install Git.Git 在原生 Windows 安裝 Git。</div></div>
+  </div>
+</section>
+
+<section id="windows-sandbox">
+  <h2>Windows sandbox</h2>
+  <p>設定並排解原生 Codex sandbox 在 Windows 上的問題, 應用程式可原生於 PowerShell 中搭配 Windows sandbox 執行, 不需要 WSL 或虛擬機器。</p>
+
+  <h3>兩種原生 sandbox 模式</h3>
+  <div class="two-col">
+    <div class="col-card"><div class="col-card-title">Elevated, 建議</div><p>使用專屬的低權限 sandbox 使用者, 檔案系統權限邊界, 防火牆規則與本機政策變更, 是較強的原生 Windows sandbox。</p></div>
+    <div class="col-card"><div class="col-card-title">Unelevated, 備援</div><p>以受限的 Windows token 執行指令, 套用以 ACL 為基礎的檔案系統邊界, 較弱但適用於管理員設定受阻的情況。</p></div>
+  </div>
+  <div class="code-block"><span class="key">[windows]</span>
+<span class="key">sandbox</span> = <span class="str">"elevated"</span> <span class="cmt"># 或 "unelevated"</span></div>
+
+  <h3>Windows 版本支援矩陣</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Windows 版本</th><th>支援程度</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td>Windows 11</td><td>建議</td><td>Codex 在 Windows 上最佳的基準環境</td></tr>
+        <tr><td>近期且完整更新的 Windows 10</td><td>盡力支援</td><td>可運作但較不穩定, 需要 1809 以上版本</td></tr>
+        <tr><td>較舊的 Windows 10 版本</td><td>不建議</td><td>較容易失敗</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>疑難排解</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">原生 sandbox 設定失敗</div><div class="event-desc">常見原因包含拒絕 UAC 提示或機器不允許建立本機使用者群組, 可先重試 elevated 設定, 若受阻則改用 unelevated。</div></div>
+    <div class="event-item"><div class="event-name">出現 Windows 錯誤 1385</div><div class="event-desc">代表 Windows 拒絕 sandbox 使用者所需的登入類型, 請洽詢 IT 團隊裝置政策。</div></div>
+    <div class="event-item"><div class="event-name">警告某些資料夾對 Everyone 可寫入</div><div class="event-desc">檢視警告列出的資料夾, 適當移除 Everyone 的寫入權限。</div></div>
+    <div class="event-item"><div class="event-name">沙箱化指令無法連上網路</div><div class="event-desc">確認任務是否原本就該在停用網路的情況下執行。</div></div>
+  </div>
+  <div class="code-block"><span class="cmt"># 授予 sandbox 讀取存取權</span>
+/sandbox-add-read-dir C:\absolute\directory\path</div>
+</section>
+
+<section id="wsl">
+  <h2>WSL</h2>
+  <p>在 Windows Subsystem for Linux 中執行並排解 Codex 問題, 使用 WSL2 時 Codex 在 Linux 環境中執行, 而非使用原生 Windows sandbox, 當你需要 Linux 原生工具, 工作流程已在 WSL2 中進行, 或兩種原生 Windows sandbox 模式都不適用時選擇 WSL2。</p>
+
+  <h3>在 WSL 中使用 Codex CLI</h3>
+  <div class="code-block"><span class="cmt"># 以系統管理員身分開啟 PowerShell 執行</span>
+wsl --install
+wsl
+
+<span class="cmt"># 在 WSL shell 中安裝並執行 Codex</span>
+<span class="fn">curl</span> -fsSL https://chatgpt.com/codex/install.sh | <span class="fn">sh</span>
+<span class="fn">codex</span></div>
+
+  <h3>在 WSL 中處理程式碼</h3>
+  <p>在類似 /mnt/c/... 這種 Windows 掛載路徑中工作可能比 Windows 原生路徑慢, 建議把儲存庫放在 Linux 家目錄下, 例如 ~/code/my-app, 以取得更快的 I/O 並減少符號連結與權限問題。</p>
+
+  <h3>疑難排解</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">大型儲存庫在 WSL 中變慢</div><div class="event-desc">確認沒有在 /mnt/c 下工作, 把儲存庫搬到 WSL 內, 並執行 wsl --update。</div></div>
+    <div class="event-item"><div class="event-name">VS Code 在 WSL 中找不到 codex</div><div class="event-desc">在 WSL 中確認執行檔存在且位於 PATH 上, 用 which codex 驗證。</div></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    document.getElementById('themeToggle').textContent = isDark ? '☀ 亮色模式' : '🌙 暗色模式';
+  }
+
+  function goStep(group, n) {
+    const tabs = document.querySelectorAll('.stage-tab[data-group="' + group + '"]');
+    const panels = document.querySelectorAll('.demo-panel[data-group="' + group + '"][data-step]');
+    panels.forEach(function(p) { p.classList.toggle('visible', Number(p.dataset.step) === n); });
+    tabs.forEach(function(t) {
+      const s = Number(t.dataset.step);
+      t.classList.remove('active', 'done');
+      if (s === n) t.classList.add('active');
+      else if (s < n) t.classList.add('done');
+    });
+    const ind = document.querySelector('[data-indicator="' + group + '"]');
+    if (ind) ind.textContent = '步驟 ' + (n + 1) + ' / ' + tabs.length;
+  }
+
+  function chipSelect(group, val) {
+    document.querySelectorAll('.chip[data-group="' + group + '"]').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.val === val);
+    });
+    document.querySelectorAll('.demo-panel[data-group="' + group + '"][data-val]').forEach(function(p) {
+      p.classList.toggle('visible', p.dataset.val === val);
+    });
+  }
+
+  function filterList(inputId, tableId) {
+    const q = document.getElementById(inputId).value.trim().toLowerCase();
+    const rows = document.querySelectorAll('#' + tableId + ' tr[data-row]');
+    let count = 0;
+    rows.forEach(function(row) {
+      const match = row.textContent.toLowerCase().includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) count++;
+    });
+    document.getElementById(inputId + '-count').textContent = count + ' / ' + rows.length + ' 筆';
+  }
+
+  ['chronicleStep','agentsStep'].forEach(function(g) { goStep(g, 0); });
+  chipSelect('cfgOpt', 'model');
+  chipSelect('provider', 'proxy');
+  chipSelect('sample', 'model');
+  chipSelect('mcpSetup', 'desktop');
+  filterList('otelSearch', 'otelTable');
+  filterList('cfgRefSearch', 'cfgRefTable');
+  filterList('reqRefSearch', 'reqRefTable');
+</script>
+</body>
+</html>

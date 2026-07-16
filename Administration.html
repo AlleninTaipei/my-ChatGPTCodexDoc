@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatGPT 與 Codex 管理指南</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+           background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+    header { background: linear-gradient(135deg, #dbeafe 0%, #f0f4f8 100%);
+             border-bottom: 1px solid #bfdbfe; padding: 48px 24px 40px; text-align: center; }
+    header h1 { font-size: 2.2rem; font-weight: 700; color: #1e3a5f; }
+    header p  { margin-top: 10px; color: #4a5568; font-size: 1.05rem;
+                max-width: 640px; margin-inline: auto; }
+
+    main    { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+    section { margin-bottom: 56px; }
+    h2 { font-size: 1.4rem; font-weight: 600; color: #1e40af;
+         border-left: 4px solid #3b82f6; padding-left: 14px; margin-bottom: 20px; }
+    h3 { font-size: 1.05rem; font-weight: 600; color: #1a202c; margin: 24px 0 8px; }
+    p  { color: #4a5568; margin-bottom: 12px; }
+
+    .code-block { background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 8px;
+      padding: 16px 18px; font-family: monospace; font-size: 0.8rem; color: #1a202c;
+      overflow-x: auto; margin-top: 14px; line-height: 1.65; white-space: pre; }
+    .kw  { color: #7c3aed; }
+    .fn  { color: #16a34a; }
+    .str { color: #d97706; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .key { color: #2563eb; }
+
+    .info-box { background: #dbeafe; border: 1px solid #93c5fd; border-radius: 10px;
+      padding: 16px 20px; margin-top: 14px; }
+    .info-box .tag { display: inline-block; background: #3b82f6; color: #fff;
+      font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+      margin-bottom: 10px; letter-spacing: 0.05em; }
+    .info-box p { color: #1e3a5f; font-size: 0.88rem; margin: 0; }
+
+    .takeaway { background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+      border: 1px solid #4ade80; border-radius: 10px; padding: 20px 24px; margin-top: 16px; }
+    .takeaway p { color: #166534; font-size: 0.9rem; margin: 0; }
+
+    .api-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .field { background: #fff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 14px 16px; }
+    .field .name { font-family: monospace; font-size: 0.85rem; color: #16a34a; font-weight: 600; }
+    .field .desc { font-size: 0.82rem; color: #4a5568; margin-top: 4px; }
+
+    .event-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .event-item { background: #fff; border: 1px solid #cbd5e0; border-radius: 6px;
+      padding: 9px 14px; display: flex; gap: 14px; align-items: baseline; }
+    .event-name { font-family: monospace; font-size: 0.82rem; color: #16a34a;
+      min-width: 170px; flex-shrink: 0; }
+    .event-desc { font-size: 0.82rem; color: #4a5568; }
+
+    .response-box { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px;
+      padding: 20px; margin-top: 16px; }
+    .response-field { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+    .response-field:last-child { border-bottom: none; }
+    .rf-key { font-family: monospace; font-size: 0.82rem; color: #d97706; width: 160px; flex-shrink: 0; }
+    .rf-val { font-size: 0.85rem; color: #374151; }
+
+    .stage-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stage-tab  { padding: 7px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #e2e8f0; color: #4a5568; transition: all 0.2s; }
+    .stage-tab.active { background: #2563eb; border-color: #3b82f6; color: #fff; }
+    .stage-tab.done   { background: #166534; border-color: #4ade80; color: #dcfce7; }
+    .step-indicator { color: #6b7280; font-size: 0.82rem; margin-top: 10px; display: block; }
+
+    .demo-panel { display: none; }
+    .demo-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .col-card { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px; padding: 16px 18px; }
+    .col-card-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+    .col-card p { font-size: 0.83rem; color: #4a5568; margin-bottom: 6px; }
+    .col-card p:last-child { margin-bottom: 0; }
+
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .chip-label { font-size: 0.75rem; color: #6b7280; }
+    .chip { padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #e2e8f0; color: #4a5568; transition: all 0.2s; }
+    .chip.active { background: #dcfce7; border-color: #4ade80; color: #166534; }
+
+    .data-table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid #cbd5e0; border-radius: 8px; }
+    table.data-table { border-collapse: collapse; width: 100%; font-size: 0.78rem; min-width: 480px; }
+    table.data-table th, table.data-table td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    table.data-table th { background: #f0f4f8; color: #1e3a5f; font-weight: 700; white-space: nowrap; }
+    table.data-table tr:last-child td { border-bottom: none; }
+
+    @media (max-width: 640px) {
+      .api-fields, .two-col, .three-col { grid-template-columns: 1fr; }
+    }
+
+    #themeToggle { position: fixed; top: 16px; right: 16px; z-index: 9999;
+      padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #fff; color: #1a202c;
+      transition: all 0.25s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); letter-spacing: 0.03em; }
+    #themeToggle:hover { border-color: #2563eb; color: #2563eb; }
+
+    body.dark { background: #0f1117; color: #e2e8f0; }
+    body.dark header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom-color: #2d3748; }
+    body.dark header h1 { color: #f7fafc; }
+    body.dark header p  { color: #a0aec0; }
+    body.dark h2 { color: #90cdf4; border-left-color: #4299e1; }
+    body.dark h3 { color: #e2e8f0; }
+    body.dark p  { color: #a0aec0; }
+    body.dark .code-block { background: #0d1117; border-color: #2d3748; color: #e2e8f0; }
+    body.dark .kw  { color: #9f7aea; }
+    body.dark .fn  { color: #68d391; }
+    body.dark .str { color: #f6ad55; }
+    body.dark .cmt { color: #4a5568; }
+    body.dark .key { color: #63b3ed; }
+    body.dark .info-box { background: #1a202c; border-color: #2a4a6a; }
+    body.dark .info-box .tag { background: #2a4a6a; color: #90cdf4; }
+    body.dark .info-box p { color: #a0aec0; }
+    body.dark .takeaway { background: linear-gradient(135deg, #1a2a1a, #1a202c); border-color: #276749; }
+    body.dark .takeaway p { color: #c6f6d5; }
+    body.dark .field { background: #1a202c; border-color: #2d3748; }
+    body.dark .field .name { color: #68d391; }
+    body.dark .field .desc { color: #718096; }
+    body.dark .event-item { background: #1a202c; border-color: #2d3748; }
+    body.dark .event-name { color: #68d391; }
+    body.dark .event-desc { color: #718096; }
+    body.dark .response-box { background: #1a202c; border-color: #2d3748; }
+    body.dark .response-field { border-bottom-color: #2d3748; }
+    body.dark .rf-key { color: #f6ad55; }
+    body.dark .rf-val { color: #a0aec0; }
+    body.dark .step-indicator { color: #718096; }
+    body.dark .stage-tab { background: #1a202c; border-color: #2d3748; color: #718096; }
+    body.dark .stage-tab.active { background: #2b6cb0; border-color: #4299e1; color: #fff; }
+    body.dark .stage-tab.done   { background: #276749; border-color: #48bb78; color: #c6f6d5; }
+    body.dark .col-card { background: #1a202c; border-color: #2d3748; }
+    body.dark .col-card-title { color: #4a5568; }
+    body.dark .col-card p { color: #a0aec0; }
+    body.dark .chip { background: #1a202c; border-color: #2d3748; color: #718096; }
+    body.dark .chip.active { background: #1c3a2a; border-color: #38a169; color: #68d391; }
+    body.dark .data-table-wrap { border-color: #2d3748; }
+    body.dark table.data-table th { background: #1a202c; color: #90cdf4; }
+    body.dark table.data-table td { border-bottom-color: #2d3748; color: #a0aec0; }
+    body.dark #themeToggle { background: #1a202c; color: #e2e8f0; border-color: #4a5568; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    body.dark #themeToggle:hover { border-color: #90cdf4; color: #90cdf4; }
+  </style>
+</head>
+<body>
+
+<button id="themeToggle" onclick="toggleTheme()">🌙 暗色模式</button>
+
+<header>
+  <h1>ChatGPT 與 Codex 管理指南</h1>
+  <p>從導入部署, 驗證與存取令牌, 到受管理設定, 法規遵循與治理報表, 一份可互動探索的企業管理說明文件。</p>
+</header>
+
+<main>
+
+<section id="rollout">
+  <h2>Admin Rollout Guide</h2>
+  <p>規劃, 設定並驗證 ChatGPT Enterprise 在工作區與開發者介面上的導入部署。這份指南涵蓋工作區存取, 桌面應用程式, Codex CLI 與 IDE 擴充功能的本機執行政策, Codex cloud, Platform API 存取, 外掛與應用程式, 以及已連接系統的權限等管理邊界。</p>
+  <div class="info-box"><p>工作區設定中的 Codex Local 是本機存取與存取令牌控制的分組標籤, 不是獨立產品。</p></div>
+
+  <div class="stage-tabs" data-group="rolloutStep">
+    <div class="stage-tab active" data-group="rolloutStep" data-step="0" onclick="goStep('rolloutStep',0)">1 · 指派負責人</div>
+    <div class="stage-tab" data-group="rolloutStep" data-step="1" onclick="goStep('rolloutStep',1)">2 · 工作區存取</div>
+    <div class="stage-tab" data-group="rolloutStep" data-step="2" onclick="goStep('rolloutStep',2)">3 · 本機執行規範</div>
+    <div class="stage-tab" data-group="rolloutStep" data-step="3" onclick="goStep('rolloutStep',3)">4 · 儲存庫設定</div>
+    <div class="stage-tab" data-group="rolloutStep" data-step="4" onclick="goStep('rolloutStep',4)">5 · Codex cloud</div>
+    <div class="stage-tab" data-group="rolloutStep" data-step="5" onclick="goStep('rolloutStep',5)">6 · 外掛與連接能力</div>
+    <div class="stage-tab" data-group="rolloutStep" data-step="6" onclick="goStep('rolloutStep',6)">7 · 治理與可觀測性</div>
+    <div class="stage-tab" data-group="rolloutStep" data-step="7" onclick="goStep('rolloutStep',7)">8 · 驗證與維護</div>
+  </div>
+  <div class="demo-panel visible" data-group="rolloutStep" data-step="0">
+    <p>為工作區存取, 本機執行政策, Codex cloud, 已連接系統, 報表與法規遵循各指派一位負責人, 並決定哪些對象需要桌面應用程式, Codex CLI, IDE 擴充功能或 Codex cloud 中的受涵蓋本機能力。</p>
+  </div>
+  <div class="demo-panel" data-group="rolloutStep" data-step="1">
+    <p>用 ChatGPT 工作區成員資格, 席次, 群組與 RBAC 權限授予目標對象支援的功能, 在擴大範圍前先用具代表性的成員測試登入與功能存取。</p>
+  </div>
+  <div class="demo-panel" data-group="rolloutStep" data-step="2">
+    <div class="code-block"><span class="key">default_permissions</span> = <span class="str">":workspace"</span>
+
+<span class="key">[allowed_permission_profiles]</span>
+<span class="str">":read-only"</span> = <span class="kw">true</span>
+<span class="str">":workspace"</span> = <span class="kw">true</span></div>
+    <p>透過受支援的雲端, 裝置或系統管道發送 requirements.toml, 限制使用者啟動本機執行時的行為。</p>
+  </div>
+  <div class="demo-panel" data-group="rolloutStep" data-step="3">
+    <p>使用儲存庫層級設定分享專案預設值, 規則與 skills, 這些設定能提供預設值與可重複使用的工作流程, 但無法授予工作區, 模型, Platform API 或已連接系統的存取權。</p>
+  </div>
+  <div class="demo-panel" data-group="rolloutStep" data-step="4">
+    <p>規劃每個邊界: 透過工作區控制授予目標對象 Codex cloud 存取權, 安裝並設定來源系統整合, 限制來源系統中的儲存庫存取, 設定雲端環境, 密鑰與網際網路存取, 設定選用的代管工作流程如程式碼審查, 並用具代表性的使用者測試。</p>
+  </div>
+  <div class="demo-panel" data-group="rolloutStep" data-step="5">
+    <p>把外掛安裝, 內建 skills, 應用程式支援能力, 應用程式動作與來源系統授權視為各自獨立的決策, 納入外掛或 skill 前先確認來源, 負責人, 目標對象與審查日期。</p>
+  </div>
+  <div class="demo-panel" data-group="rolloutStep" data-step="6">
+    <p>選擇符合你問題的報表介面: 工作區分析, Analytics API, Compliance API, 或使用限制與支出控制, 並將 API 金鑰儲存在組織的密鑰管理系統中。</p>
+  </div>
+  <div class="demo-panel" data-group="rolloutStep" data-step="7">
+    <p>用具代表性的身分驗證每一個適用的邊界, 記錄每項控制的負責人與目前的程序來源, 初次導入後檢視存取權, 已連接能力, 額度使用, 支援回饋與實際工作流程, 並依訊號變化調整範圍與指引。</p>
+  </div>
+  <span class="step-indicator" data-indicator="rolloutStep">步驟 1 / 8</span>
+</section>
+
+<section id="work-admin-faq">
+  <h2>ChatGPT Work Admin FAQ</h2>
+  <p>ChatGPT Work 讓使用者能把較長, 多步驟的任務委派給 AI 系統, 它會從對話, 檔案, 工作區資源與已連接系統蒐集資訊, 使用已核准的工具, 並建立可供審查的成品。Work 於 2026 年 7 月 9 日推出, 網頁版與行動版在 Enterprise 與 Edu 為期兩週的預覽期間預設停用。</p>
+
+  <h3>核心管理控制項</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">Workspace access</div><div class="desc">透過 SSO, 網域驗證與 SCIM 佈建等身分控制。</div></div>
+    <div class="field"><div class="name">Work feature access</div><div class="desc">使用頂層控制與角色型存取控制 (RBAC)。</div></div>
+    <div class="field"><div class="name">Group membership</div><div class="desc">透過身分提供者同步, 自動更新存取權。</div></div>
+    <div class="field"><div class="name">Workspace and member roles</div><div class="desc">決定管理員權限與終端使用者能力。</div></div>
+    <div class="field"><div class="name">Plugin and app governance</div><div class="desc">透過政策, 動作控制與核准行為管理。</div></div>
+    <div class="field"><div class="name">Source-system permissions</div><div class="desc">限制在原生應用程式中可存取已授權的內容。</div></div>
+    <div class="field"><div class="name">Credits</div><div class="desc">符合資格的 Enterprise 與 Edu 工作區有每人每月限制。</div></div>
+    <div class="field"><div class="name">Analytics and reporting</div><div class="desc">透過 Global Admin Console 與 Compliance API。</div></div>
+  </div>
+
+  <h3>事件與撤銷控制</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">移除工作區或群組存取</div><div class="event-desc">或透過身分提供者移除 SCIM 使用者。</div></div>
+    <div class="event-item"><div class="event-name">停用或限制相關應用程式</div><div class="event-desc">停用有疑慮的應用程式。</div></div>
+    <div class="event-item"><div class="event-name">撤銷已分享的連線</div><div class="event-desc">撤銷連線, bot 或服務帳號。</div></div>
+    <div class="event-item"><div class="event-name">移除已發佈的 Workspace Agents</div><div class="event-desc">將其從發佈狀態移除。</div></div>
+    <div class="event-item"><div class="event-name">停用排程或觸發器</div><div class="event-desc">停用相關的排程或觸發條件。</div></div>
+    <div class="event-item"><div class="event-name">撤銷 Codex access tokens</div><div class="event-desc">撤銷存取令牌, 儲存庫連線與雲端環境存取權。</div></div>
+  </div>
+
+  <h3>建議的管理員行動</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">決定導入範圍</div><div class="event-desc">試行還是大規模部署。</div></div>
+    <div class="event-item"><div class="event-name">確認 RBAC 設定</div><div class="event-desc">符合業務需求。</div></div>
+    <div class="event-item"><div class="event-name">檢視已啟用應用程式</div><div class="event-desc">檢視應用程式與資料來源權限。</div></div>
+    <div class="event-item"><div class="event-name">監控採用情形</div><div class="event-desc">依情況調整範圍與指引。</div></div>
+  </div>
+</section>
+
+<section id="authentication">
+  <h2>Authentication</h2>
+  <p>ChatGPT 網頁版與 Codex 用戶端的登入方式。Codex 使用 OpenAI 模型時支援兩種登入方式, 你的登入方式也決定了適用哪些管理控制與資料處理政策。</p>
+
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">Sign in with ChatGPT</div>
+      <p>使用量遵循你的 ChatGPT 工作區權限, RBAC 與 ChatGPT Enterprise 保留與資料落地設定, Codex cloud 需要以 ChatGPT 登入。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Sign in with an API key</div>
+      <p>使用量遵循你 API 組織的保留與資料共享設定, 依標準 API 費率計費, 適合 CI/CD 等程式化工作流程。</p>
+    </div>
+  </div>
+
+  <h3>各介面的登入方式</h3>
+  <div class="code-block"><span class="cmt"># Codex CLI 以 ChatGPT 登入</span>
+<span class="fn">codex</span> <span class="kw">login</span>
+
+<span class="cmt"># Codex CLI 以 API 金鑰登入</span>
+<span class="fn">printenv</span> OPENAI_API_KEY | <span class="fn">codex</span> <span class="kw">login</span> <span class="key">--with-api-key</span></div>
+  <p>ChatGPT 桌面應用程式在登出畫面選擇 Continue to sign in 或 Sign in another way, IDE 擴充功能則選擇 Sign in with ChatGPT 或 Use API Key。</p>
+
+  <h3>存取令牌與安全設定</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">Codex access tokens</div><div class="event-desc">Enterprise 工作區可授予存取令牌權限, 讓成員為受信任的非互動工作流程建立令牌。</div></div>
+    <div class="event-item"><div class="event-name">Codex cloud MFA</div><div class="event-desc">Codex cloud 直接與程式碼庫互動, 需要更強的安全性, 以電子郵件密碼登入者必須先設定 MFA。</div></div>
+    <div class="event-item"><div class="event-name">憑證儲存</div><div class="event-desc">用 cli_auth_credentials_store 控制憑證存放於 file, keyring 或 auto。</div></div>
+    <div class="event-item"><div class="event-name">強制登入方式</div><div class="event-desc">用 forced_login_method 與 forced_chatgpt_workspace_id 限制登入方式與工作區。</div></div>
+  </div>
+
+  <h3>無圖形介面裝置上的登入</h3>
+  <p>在遠端或無頭環境中, 瀏覽器登入介面可能無法運作, 建議優先使用裝置代碼驗證 (beta), 在互動式登入介面選擇 Sign in with Device Code, 或執行 codex login --device-auth, 也可以在有瀏覽器的機器上登入後複製驗證快取到目標機器, 或透過 SSH 轉發本機回呼連接埠。</p>
+  <div class="code-block"><span class="cmt"># 自訂 CA 憑證</span>
+<span class="fn">export</span> CODEX_CA_CERTIFICATE=<span class="str">/path/to/corporate-root-ca.pem</span>
+<span class="fn">codex</span> <span class="kw">login</span></div>
+</section>
+
+<section id="access-tokens">
+  <h2>Access tokens</h2>
+  <p>建立並管理供 Codex 程式化工作流程使用的存取令牌。Codex access tokens 是限定 Codex 權限的 ChatGPT 工作區憑證, 用於驗證受信任的非互動本機工作流程, 目前支援 ChatGPT Business 與 Enterprise 工作區。</p>
+
+  <h3>建立存取令牌</h3>
+  <div class="stage-tabs" data-group="tokenStep">
+    <div class="stage-tab active" data-group="tokenStep" data-step="0" onclick="goStep('tokenStep',0)">1 · 前往頁面</div>
+    <div class="stage-tab" data-group="tokenStep" data-step="1" onclick="goStep('tokenStep',1)">2 · 選擇 Create</div>
+    <div class="stage-tab" data-group="tokenStep" data-step="2" onclick="goStep('tokenStep',2)">3 · 命名</div>
+    <div class="stage-tab" data-group="tokenStep" data-step="3" onclick="goStep('tokenStep',3)">4 · 選擇到期時間</div>
+    <div class="stage-tab" data-group="tokenStep" data-step="4" onclick="goStep('tokenStep',4)">5 · 建立</div>
+    <div class="stage-tab" data-group="tokenStep" data-step="5" onclick="goStep('tokenStep',5)">6 · 複製令牌</div>
+    <div class="stage-tab" data-group="tokenStep" data-step="6" onclick="goStep('tokenStep',6)">7 · 存入密鑰管理</div>
+  </div>
+  <div class="demo-panel visible" data-group="tokenStep" data-step="0"><p>前往 Access tokens 頁面 (chatgpt.com/admin/access-tokens)。</p></div>
+  <div class="demo-panel" data-group="tokenStep" data-step="1"><p>選擇 Create。</p></div>
+  <div class="demo-panel" data-group="tokenStep" data-step="2"><p>輸入具描述性的名稱, 例如 release-ci 或 nightly-docs-check。</p></div>
+  <div class="demo-panel" data-group="tokenStep" data-step="3"><p>選擇到期時間, 建議選擇 7, 30, 60 或 90 天等有限期限, 若選 No expiration 則需定期輪換。</p></div>
+  <div class="demo-panel" data-group="tokenStep" data-step="4"><p>選擇 Create。</p></div>
+  <div class="demo-panel" data-group="tokenStep" data-step="5"><p>立即複製產生的存取令牌, 關閉對話框後將無法再次檢視。</p></div>
+  <div class="demo-panel" data-group="tokenStep" data-step="6"><p>把令牌存入你的密鑰管理系統或 CI 密鑰儲存區。</p></div>
+  <span class="step-indicator" data-indicator="tokenStep">步驟 1 / 7</span>
+
+  <div class="code-block"><span class="fn">export</span> CODEX_ACCESS_TOKEN=<span class="str">"&lt;access-token&gt;"</span>
+<span class="fn">codex</span> <span class="kw">exec</span> <span class="key">--json</span> <span class="str">"review this repository and summarize the top risks"</span></div>
+
+  <h3>權限模型</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>能力</th><th>工作區擁有者與管理員</th><th>具存取令牌權限的成員</th><th>不具權限的成員</th></tr></thead>
+      <tbody>
+        <tr><td>開啟 Access tokens 頁面</td><td>可以</td><td>可以</td><td>不可以</td></tr>
+        <tr><td>建立存取令牌</td><td>可以, 限自己的身分</td><td>可以, 限自己的身分</td><td>不可以</td></tr>
+        <tr><td>列出存取令牌</td><td>工作區完整清單</td><td>僅自己建立的</td><td>不可以</td></tr>
+        <tr><td>撤銷存取令牌</td><td>工作區中任何令牌</td><td>僅自己建立的</td><td>無法存取頁面</td></tr>
+        <tr><td>授予或移除存取令牌權限</td><td>可以</td><td>不可以</td><td>不可以</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="takeaway"><p>主要風險包含密鑰外洩, runner 信任度, 身分共用, 過期未撤銷的憑證, 以及誤用憑證類型, 應把令牌視為自動化密鑰妥善保管, 定期輪換並僅用於受信任的 runner。</p></div>
+</section>
+
+<section id="groups">
+  <h2>Groups and provisioning</h2>
+  <p>了解群組成員來源與其工作區存取邊界, 群組用來組織一組成員的 ChatGPT 工作區存取權, 並可攜帶自訂角色, 群組成員資格與本機執行政策及已連接系統中的權限是分開的。</p>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">Manually managed</div>
+      <p>成員資格來源為 ChatGPT 工作區管理介面, 適合群組較小, 臨時性, 或未透過目錄同步管理時。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Identity-provider managed</div>
+      <p>成員資格來源為你的身分提供者, 透過 SCIM 同步, 適合成員資格應遵循組織目錄與成員移除流程時。</p>
+    </div>
+  </div>
+  <div class="info-box"><p>SCIM 佈建工作區成員資格與群組指派, 但不會授予 GitHub, Google Drive, Slack 或其他已連接系統中的權限, 也不會取代本機執行需求或 Platform API 組織存取權。</p></div>
+</section>
+
+<section id="roles">
+  <h2>Roles and workspace permissions</h2>
+  <p>把 ChatGPT 工作區存取與本機執行, API, 外掛及來源系統控制分開來看, 管理涵蓋六個控制邊界, 在其中一個邊界獲得存取權不代表在另一個邊界也有存取權。</p>
+
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>邊界</th><th>控制的內容</th><th>不控制的內容</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT workspace</td><td>成員資格, 席次, 內建管理角色, RBAC</td><td>本機代理權限, Platform API 組織存取, 已連接服務中的權限</td></tr>
+        <tr><td>Local clients</td><td>桌面應用程式, Codex CLI, IDE 擴充功能的執行行為, 包含核准, 檔案系統與網路存取, 權限設定檔</td><td>ChatGPT 席次, 功能或模型權限, 外部資料存取</td></tr>
+        <tr><td>Codex cloud</td><td>使用代管 Codex 工作流程的資格與可用的雲端環境</td><td>本機執行政策或來源系統授予的儲存庫權限</td></tr>
+        <tr><td>Platform API</td><td>組織與專案成員資格, API 金鑰, 模型存取, 用量與計費</td><td>ChatGPT 工作區成員資格, 本機用戶端存取, Codex cloud 存取</td></tr>
+        <tr><td>Plugins and apps</td><td>外掛可用性與安裝, 內建 skills, 應用程式存取與支援的動作</td><td>已連接服務中的授權, 更廣泛的本機與雲端執行權限</td></tr>
+        <tr><td>Connected systems</td><td>已驗證帳號在來源系統中能存取的儲存庫, 檔案, 訊息與動作</td><td>ChatGPT 工作區, 外掛, Codex cloud 或 Platform API 權限</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>一項請求必須通過所有適用的邊界, 例如工作區存取可以讓一個應用程式變成可用, 但已連接服務仍決定已登入帳號能讀取哪些資料。</p>
+</section>
+
+<section id="managed-config">
+  <h2>Managed Configuration</h2>
+  <p>在受支援的本機用戶端上強制執行執行時期需求, 並發佈受管理的預設值。管理員可用兩種方式控制本機用戶端行為: requirements 是使用者無法覆寫的強制約束, managed defaults 是用戶端啟動時套用的起始值, 使用者仍可在執行期間變更, 但下次啟動時會重新套用。</p>
+
+  <h3>requirements.toml 範例</h3>
+  <div class="chip-row" data-chipgroup="mcChip">
+    <span class="chip active" data-group="mcChip" data-val="perm" onclick="chipSelect('mcChip','perm')">權限設定檔</span>
+    <span class="chip" data-group="mcChip" data-val="feat" onclick="chipSelect('mcChip','feat')">功能旗標</span>
+    <span class="chip" data-group="mcChip" data-val="deny" onclick="chipSelect('mcChip','deny')">拒絕讀取</span>
+    <span class="chip" data-group="mcChip" data-val="hooks" onclick="chipSelect('mcChip','hooks')">受管理 Hooks</span>
+    <span class="chip" data-group="mcChip" data-val="rules" onclick="chipSelect('mcChip','rules')">指令規則</span>
+    <span class="chip" data-group="mcChip" data-val="mcp" onclick="chipSelect('mcChip','mcp')">MCP 伺服器限制</span>
+  </div>
+  <div class="demo-panel visible" data-group="mcChip" data-val="perm">
+    <div class="code-block"><span class="key">default_permissions</span> = <span class="str">":workspace"</span>
+
+<span class="key">[allowed_permission_profiles]</span>
+<span class="str">":read-only"</span> = <span class="kw">true</span>
+<span class="str">":workspace"</span> = <span class="kw">true</span>
+<span class="cmt"># ":danger-full-access" 未列出, 因此被拒絕</span></div>
+    <p>用 allowed_permission_profiles 控制使用者可選擇的內建與自訂權限設定檔, 需要 Codex 0.138.0 以上版本。</p>
+  </div>
+  <div class="demo-panel" data-group="mcChip" data-val="feat">
+    <div class="code-block"><span class="key">[features]</span>
+<span class="key">browser_use</span> = <span class="kw">false</span>
+<span class="key">browser_use_full_cdp_access</span> = <span class="kw">false</span>
+<span class="key">browser_use_external</span> = <span class="kw">false</span>
+<span class="key">in_app_browser</span> = <span class="kw">false</span>
+<span class="key">computer_use</span> = <span class="kw">false</span></div>
+    <p>可跨瀏覽器與桌面介面停用 Computer Use, 若省略這些鍵, 政策不限制該功能, 一般的產品可用性規則仍適用。</p>
+  </div>
+  <div class="demo-panel" data-group="mcChip" data-val="deny">
+    <div class="code-block"><span class="key">[permissions.filesystem]</span>
+<span class="key">deny_read</span> = [
+  <span class="str">"/**/*.env"</span>,
+  <span class="str">"~/.ssh"</span>,
+]</div>
+    <p>管理員可用絕對路徑或 glob 樣式拒絕讀取特定路徑, 使用者無法用本機設定弱化這項需求。</p>
+  </div>
+  <div class="demo-panel" data-group="mcChip" data-val="hooks">
+    <div class="code-block"><span class="key">allow_managed_hooks_only</span> = <span class="kw">true</span>
+
+<span class="key">[features]</span>
+<span class="key">hooks</span> = <span class="kw">true</span>
+
+<span class="key">[hooks]</span>
+<span class="key">managed_dir</span> = <span class="str">"/enterprise/hooks"</span></div>
+    <p>管理員可在 requirements.toml 中直接定義受管理的生命週期 hooks, 並用 allow_managed_hooks_only 跳過使用者, 專案, 工作階段與外掛層級的 hooks。</p>
+  </div>
+  <div class="demo-panel" data-group="mcChip" data-val="rules">
+    <div class="code-block"><span class="key">[rules]</span>
+<span class="key">prefix_rules</span> = [
+  { pattern = [{ token = <span class="str">"rm"</span> }], decision = <span class="str">"forbidden"</span>, justification = <span class="str">"Use git clean -fd instead."</span> },
+]</div>
+    <p>需求規則會與一般 .rules 檔案合併, 最嚴格的判斷會勝出, decision 只能是 prompt 或 forbidden。</p>
+  </div>
+  <div class="demo-panel" data-group="mcChip" data-val="mcp">
+    <div class="code-block"><span class="key">[mcp_servers.docs]</span>
+<span class="key">identity</span> = { command = <span class="str">"codex-mcp"</span> }</div>
+    <p>用允許清單限制本機用戶端可啟用哪些 MCP 伺服器, 若 mcp_servers 存在但為空, 用戶端會停用所有 MCP 伺服器。</p>
+  </div>
+
+  <h3>設定的優先順序</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>層級</th><th>順序</th></tr></thead>
+      <tbody>
+        <tr><td>macOS 受管理偏好設定 (MDM)</td><td>最高優先</td></tr>
+        <tr><td>雲端管理需求 (登入 ChatGPT 時傳送)</td><td>次高</td></tr>
+        <tr><td>系統 requirements.toml</td><td>再次</td></tr>
+        <tr><td>managed_config.toml</td><td>覆蓋使用者設定</td></tr>
+        <tr><td>使用者 config.toml</td><td>最低優先</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>CLI 的 --config 覆寫套用在基礎層, 但受管理層仍會覆蓋它們, 這代表即使提供本機旗標, 每次執行仍會從受管理的預設值開始。</p>
+</section>
+
+<section id="hipaa">
+  <h2>HIPAA Configuration Guide for Codex Local</h2>
+  <p>協助組織為可能涉及受保護健康資訊 (PHI) 的工作流程設定 Codex Local。OpenAI 透過適用的 Business Associate Agreement 在 ChatGPT for Healthcare, ChatGPT for Clinicians 或 Regulated 工作區中支援 HIPAA 法規遵循。</p>
+
+  <h3>核心設定控制項</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>控制項</th><th>設定值</th><th>目的</th></tr></thead>
+      <tbody>
+        <tr><td>Sign-in</td><td>PHI 用 ChatGPT, 已核准工作流程用 API 金鑰</td><td>決定治理權責</td></tr>
+        <tr><td>Workspace pinning</td><td>forced_chatgpt_workspace_id</td><td>把 PHI 工作流程限定在已核准工作區</td></tr>
+        <tr><td>Approvals</td><td>allowed_approval_policies = ["on-request", "untrusted"]</td><td>要求審查高風險動作</td></tr>
+        <tr><td>Permissions</td><td>default_permissions = ":workspace"</td><td>限制裝置存取</td></tr>
+        <tr><td>Web search</td><td>allowed_web_search_modes = ["cached"]</td><td>限制外部資料暴露</td></tr>
+        <tr><td>Features</td><td>停用 computer_use, browser_use, in_app_browser</td><td>降低 PHI 暴露給外部應用程式的風險</td></tr>
+        <tr><td>MCP servers</td><td>預設清空, 用允許清單核准伺服器</td><td>控制第三方工具存取</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>起始設定範例</h3>
+  <div class="code-block"><span class="key">allowed_approval_policies</span> = [<span class="str">"on-request"</span>, <span class="str">"untrusted"</span>]
+<span class="key">allowed_approvals_reviewers</span> = [<span class="str">"user"</span>]
+<span class="key">allowed_web_search_modes</span> = [<span class="str">"cached"</span>]
+<span class="key">default_permissions</span> = <span class="str">":workspace"</span>
+
+<span class="key">[features]</span>
+<span class="key">computer_use</span> = <span class="kw">false</span>
+<span class="key">browser_use</span> = <span class="kw">false</span></div>
+
+  <h3>導入步驟</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 選擇登入方式</div><div class="event-desc">ChatGPT, API 金鑰或混合登入。</div></div>
+    <div class="event-item"><div class="event-name">2 · 確認 BAA 涵蓋範圍</div><div class="event-desc">與 OpenAI 確認所選登入路徑的 BAA。</div></div>
+    <div class="event-item"><div class="event-name">3 · 啟用 Codex Local</div><div class="event-desc">建立 RBAC 群組。</div></div>
+    <div class="event-item"><div class="event-name">4 · 部署強制需求</div><div class="event-desc">部署 requirements.toml 與受管理預設值。</div></div>
+    <div class="event-item"><div class="event-name">5 · 訓練使用者</div><div class="event-desc">說明核准工作流程與沙箱邊界。</div></div>
+    <div class="event-item"><div class="event-name">6 · 審查第三方應用程式</div><div class="event-desc">確認 PHI 相容性與 BAA 狀態。</div></div>
+    <div class="event-item"><div class="event-name">7 · 持續監控</div><div class="event-desc">透過 Compliance API 匯出, 工作區分析與稽核紀錄。</div></div>
+  </div>
+</section>
+
+<section id="model-availability">
+  <h2>Workspace model availability</h2>
+  <p>模型可用性取決於產品介面與驗證邊界, ChatGPT 工作區的模型設定並非適用於 Codex 各介面的通用模型開關。</p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>介面或驗證邊界</th><th>模型存取依循</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT workspace</td><td>工作區方案, 成員存取, 工作區設定與角色權限</td></tr>
+        <tr><td>Codex 以 ChatGPT 登入</td><td>特定用戶端支援的模型與已登入 ChatGPT 身分的存取權</td></tr>
+        <tr><td>Codex cloud</td><td>代管 Codex 工作流程支援的模型與已登入身分的存取權</td></tr>
+        <tr><td>Codex 以 API 金鑰驗證</td><td>與該金鑰關聯的 OpenAI API 組織與專案</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="takeaway"><p>模型存取權無法弱化沙箱, 核准政策, 網路控制或來源系統權限, 若使用者無法選擇預期的模型, 先確認產品介面, 登入方式與所屬組織或專案。</p></div>
+</section>
+
+<section id="plugin-controls">
+  <h2>Plugin controls</h2>
+  <p>了解外掛可用性, 連接器支援能力, 動作與已連接系統存取權, 一個外掛透過封裝 skills 與選用的連接器擴充 Codex, 讓團隊能散布工作流程與知識。</p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>層級</th><th>決定的內容</th><th>管理位置</th></tr></thead>
+      <tbody>
+        <tr><td>外掛可用性與安裝</td><td>使用者是否能取得外掛套件</td><td>工作區設定, CLI 外掛瀏覽器</td></tr>
+        <tr><td>內建 skills</td><td>已安裝外掛提供哪些可重複使用指示</td><td>外掛套件與 Skill controls</td></tr>
+        <tr><td>連接器存取 (Apps)</td><td>使用者能否使用連接器支援的能力</td><td>Workspace apps 與 Permissions &amp; roles</td></tr>
+        <tr><td>連接器動作與應用程式權限</td><td>使用者可執行哪些動作, 何時需要詢問</td><td>應用程式的 Action control 與 App permissions</td></tr>
+        <tr><td>來源系統授權</td><td>已驗證身分能存取哪些外部資料與動作</td><td>已連接服務與其身分提供者</td></tr>
+        <tr><td>執行時期權限</td><td>代理取得資料或工具後能做什麼</td><td>執行環境, 沙箱與核准控制</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>外掛僅在 ChatGPT Work 網頁版, 桌面應用程式的 Work 與 Codex, 以及 Codex CLI 外掛瀏覽器中可用, 在 Chat, IDE 擴充功能或行動版中不可用。</p>
+</section>
+
+<section id="skill-controls">
+  <h2>Skill controls</h2>
+  <p>Skills 是由指示與支援資源組成的可重複使用工作流程, ChatGPT 工作區 Skills, 本機檔案系統 skills 與封裝 skills 的外掛擁有各自獨立的生命週期與存取控制。</p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>散布模式</th><th>適用情境</th><th>管理邊界</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT workspace Skill</td><td>透過工作區功能分享或安裝已核准的工作流程</td><td>工作區 skill 權限與生命週期控制</td></tr>
+        <tr><td>Local filesystem skill</td><td>從儲存庫, 使用者, 管理員或內建位置載入工作流程</td><td>檔案系統散布, 本機用戶端設定與執行權限</td></tr>
+        <tr><td>Plugin</td><td>把一個以上的 skills 與選用的 apps, MCP 伺服器封裝在一起</td><td>外掛可用性與安裝, 加上每項內建能力各自的控制</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>搬移一個 skill 不會轉移 ChatGPT 工作區的擁有權, 分享狀態, 角色指派, 外掛安裝狀態或應用程式授權, 每項能力都需透過擁有它的控制介面設定。</p>
+</section>
+
+<section id="governance">
+  <h2>Governance</h2>
+  <p>為每個管理問題選擇合適的分析, 使用量與稽核介面, Codex 活動的治理涵蓋互動式分析, 程式化報表, 相關的 ChatGPT 使用量控制與稽核紀錄。</p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>需求</th><th>建議從這裡開始</th></tr></thead>
+      <tbody>
+        <tr><td>了解 ChatGPT 整體採用情形</td><td>Workspace analytics</td></tr>
+        <tr><td>互動式檢視 Codex 採用與活動</td><td>Codex analytics dashboard</td></tr>
+        <tr><td>把彙整報表載入其他系統</td><td>Analytics API</td></tr>
+        <tr><td>匯出稽核或調查用紀錄</td><td>Compliance API</td></tr>
+        <tr><td>檢視方案相關的額度控制</td><td>ChatGPT usage limits and spend controls</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="info-box"><p>工作區分析用於快速檢視採用情形, Analytics API 用於把彙整報表載入商業智慧系統, Compliance API 用於把可稽核紀錄送往 SIEM 或電子取證工作流程。</p></div>
+</section>
+
+<section id="workspace-analytics">
+  <h2>Workspace analytics</h2>
+  <p>比較 ChatGPT 工作區分析, Codex 分析, 報表 API 與稽核紀錄, 這些報表介面不會授予產品存取權或設定執行時期政策。</p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>介面</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT workspace analytics</td><td>互動式, 全工作區的採用與參與度報表</td></tr>
+        <tr><td>Codex analytics</td><td>聚焦 Codex 採用與活動的互動式報表</td></tr>
+        <tr><td>Analytics API</td><td>程式化, 彙整的 Codex 報表</td></tr>
+        <tr><td>Compliance API</td><td>稽核, 安全, 法律與調查紀錄</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="takeaway"><p>把下載的報表視為可識別的組織資料, 套用組織的存取, 儲存與保留政策, 而非假設匯出檔案與彙整儀表板具有相同的隱私特性。</p></div>
+</section>
+
+<section id="analytics-api">
+  <h2>Analytics API</h2>
+  <p>了解 Codex Analytics API 的用途與管理邊界, 這個 API 提供某個 ChatGPT 工作區彙整的 Codex 使用與活動指標, 已驗證的 API 參考文件是目前存取需求, 路由, schema 與分頁行為的權威來源。</p>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">自動化定期報表</div><div class="event-desc">自動產生定期的 Codex 報表。</div></div>
+    <div class="event-item"><div class="event-name">合併組織資料</div><div class="event-desc">把彙整的 Codex 指標與內部組織資料結合。</div></div>
+    <div class="event-item"><div class="event-name">建立受控報表層</div><div class="event-desc">為已核准的對象建立受控的報表層。</div></div>
+  </div>
+  <p>Analytics API 結果限定於某個 ChatGPT 工作區, 但請求以 Platform 組織 API 金鑰驗證, 金鑰所屬組織必須與工作區關聯的組織相符。</p>
+</section>
+
+<section id="compliance-api">
+  <h2>Compliance API and audit events</h2>
+  <p>用於需要可稽核紀錄的安全, 法律, 治理與調查工作流程, 使用分析而非合規紀錄來衡量採用情形與趨勢。</p>
+  <div class="stage-tabs" data-group="complStep">
+    <div class="stage-tab active" data-group="complStep" data-step="0" onclick="goStep('complStep',0)">1 · 確認角色權限</div>
+    <div class="stage-tab" data-group="complStep" data-step="1" onclick="goStep('complStep',1)">2 · 使用日誌串流</div>
+    <div class="stage-tab" data-group="complStep" data-step="2" onclick="goStep('complStep',2)">3 · 測試匯入</div>
+    <div class="stage-tab" data-group="complStep" data-step="3" onclick="goStep('complStep',3)">4 · 排程持續蒐集</div>
+  </div>
+  <div class="demo-panel visible" data-group="complStep" data-step="0"><p>打開 Admin API 參考文件, 確認你的管理員角色能存取所需的合規資源。</p></div>
+  <div class="demo-panel" data-group="complStep" data-step="1"><p>使用僅供附加的合規日誌串流進行持續蒐集, 查看已驗證的參考文件了解目前支援的資源與擷取方式。</p></div>
+  <div class="demo-panel" data-group="complStep" data-step="2"><p>在非正式環境的 SIEM 系統或資料湖中測試匯入。</p></div>
+  <div class="demo-panel" data-group="complStep" data-step="3"><p>排程持續蒐集, 並對匯出的紀錄套用組織的存取, 保留與法律保留控制。</p></div>
+  <span class="step-indicator" data-indicator="complStep">步驟 1 / 4</span>
+</section>
+
+<section id="windows-deploy">
+  <h2>Deploy the Windows app</h2>
+  <p>為 Windows 版 ChatGPT 桌面應用程式選擇企業安裝與更新路徑, 依據誰控制安裝與更新以及你的網路是否允許微軟應用程式散布服務來選擇部署方式。</p>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>情境</th><th>部署路徑</th></tr></thead>
+      <tbody>
+        <tr><td>使用者自行安裝與更新</td><td>使用 web installer</td></tr>
+        <tr><td>IT 部署且微軟更新服務可用</td><td>透過 Intune 等工具部署 Microsoft Store 應用程式</td></tr>
+        <tr><td>IT 控制更新時機或封鎖微軟更新服務</td><td>透過軟體管理流程重新部署每個新版本</td></tr>
+        <tr><td>網路封鎖微軟應用程式散布服務</td><td>使用限制網路適用的離線 MSIX 套件</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="code-block"><span class="fn">winget</span> <span class="kw">install</span> <span class="key">--id</span> 9PLM9XGG6VKS <span class="key">-s</span> msstore</div>
+  <div class="info-box"><p>延後更新是安全性與穩定性的取捨, 因為應用程式包含會定期更新的瀏覽器與執行環境元件, 建議每次 Codex 發布都重新部署, 至少每週檢查一次新版本。</p></div>
+</section>
+
+<section id="remote">
+  <h2>Remote connections</h2>
+  <p>使用 Remote 存取已連接電腦上的工作, 或透過 SSH 把 ChatGPT 桌面應用程式連接到專案。Remote 存取會使用已連接主機的專案, 任務, 檔案, 憑證, 權限, 外掛, Computer Use, 瀏覽器設定與本機工具。</p>
+
+  <h3>你可以遠端做的事</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">開始或延續任務</div><div class="event-desc">在主機上的專案中開始新任務或延續既有任務。</div></div>
+    <div class="event-item"><div class="event-name">傳送後續指示</div><div class="event-desc">回答問題並操控進行中的工作。</div></div>
+    <div class="event-item"><div class="event-name">核准動作</div><div class="event-desc">核准指令與其他動作。</div></div>
+    <div class="event-item"><div class="event-name">檢視輸出</div><div class="event-desc">檢視輸出, diff, 測試結果, 終端機輸出與截圖。</div></div>
+  </div>
+
+  <h3>設定 Remote</h3>
+  <div class="stage-tabs" data-group="remoteStep">
+    <div class="stage-tab active" data-group="remoteStep" data-step="0" onclick="goStep('remoteStep',0)">1 · 開始設定</div>
+    <div class="stage-tab" data-group="remoteStep" data-step="1" onclick="goStep('remoteStep',1)">2 · 掃描 QR code</div>
+    <div class="stage-tab" data-group="remoteStep" data-step="2" onclick="goStep('remoteStep',2)">3 · 完成 ChatGPT 設定</div>
+    <div class="stage-tab" data-group="remoteStep" data-step="3" onclick="goStep('remoteStep',3)">4 · 檢視主機設定</div>
+  </div>
+  <div class="demo-panel visible" data-group="remoteStep" data-step="0"><p>在想連接的主機上打開應用程式, 於側邊欄選擇 Set up Remote。</p></div>
+  <div class="demo-panel" data-group="remoteStep" data-step="1"><p>用手機掃描應用程式顯示的 QR code。</p></div>
+  <div class="demo-panel" data-group="remoteStep" data-step="2"><p>ChatGPT 開啟 Remote 設定流程, 確認相同的帳號與工作區, 完成所需的多重要素驗證, SSO 或 passkey 步驟。</p></div>
+  <div class="demo-panel" data-group="remoteStep" data-step="3"><p>在主機的應用程式中用 Settings > Connections 管理已連接裝置。</p></div>
+  <span class="step-indicator" data-indicator="remoteStep">步驟 1 / 4</span>
+
+  <h3>疑難排解</h3>
+  <div class="chip-row" data-chipgroup="remoteFaq">
+    <span class="chip active" data-group="remoteFaq" data-val="r1" onclick="chipSelect('remoteFaq','r1')">手機看不到主機</span>
+    <span class="chip" data-group="remoteFaq" data-val="r2" onclick="chipSelect('remoteFaq','r2')">重新登入後 Remote Control 關閉</span>
+    <span class="chip" data-group="remoteFaq" data-val="r3" onclick="chipSelect('remoteFaq','r3')">核准請求沒有出現</span>
+    <span class="chip" data-group="remoteFaq" data-val="r4" onclick="chipSelect('remoteFaq','r4')">遠端工作階段斷線</span>
+  </div>
+  <div class="demo-panel visible" data-group="remoteFaq" data-val="r1"><p>確認桌面應用程式在主機上執行中, 已啟用 Allow other devices to connect, 且兩台裝置使用相同的 ChatGPT 帳號與工作區。</p></div>
+  <div class="demo-panel" data-group="remoteFaq" data-val="r2"><p>登出 ChatGPT 會關閉 Remote Control, 但不會移除既有的裝置配對。</p></div>
+  <div class="demo-panel" data-group="remoteFaq" data-val="r3"><p>在 ChatGPT 行動應用程式打開 Remote, 若使用工作區, 請管理員確認已啟用 Remote Control 存取權。</p></div>
+  <div class="demo-panel" data-group="remoteFaq" data-val="r4"><p>檢查主機是否進入睡眠, 失去網路連線或關閉應用程式, 保持主機喚醒並連線。</p></div>
+</section>
+
+<section id="bedrock">
+  <h2>Use Codex with Amazon Bedrock</h2>
+  <p>設定 Codex 使用透過 Amazon Bedrock 提供的 OpenAI 模型, Codex 可在本機執行, 並用 AWS 管理的驗證與存取控制把模型請求送往 Bedrock。</p>
+
+  <div class="code-block"><span class="key">model_provider</span> = <span class="str">"amazon-bedrock"</span></div>
+  <p>此設定僅涵蓋商用 AWS 地區的 Amazon Bedrock Mantle 路徑, 不支援 GovCloud 地區。</p>
+
+  <h3>驗證選項</h3>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">Bedrock API key</div>
+      <div class="code-block"><span class="fn">export</span> AWS_BEARER_TOKEN_BEDROCK=&lt;key&gt;
+<span class="fn">export</span> AWS_REGION=us-east-2</div>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">AWS SDK credentials</div>
+      <p>使用標準 AWS SDK 憑證來源: aws configure 的共享設定檔, 環境變數, aws login, AWS SSO 或具名 profile, 或 credential_process 的聯合身分。</p>
+    </div>
+  </div>
+
+  <h3>功能可用性</h3>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">可用</div>
+      <p>本機程式碼審查, auto-review, sandboxing, 排程任務, Git 工具, 本機環境, appshots, 部分瀏覽器與 Computer Use 功能, 自訂指示, skills, 本機外掛, MCP, subagents。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">不可用</div>
+      <p>Codex cloud, 雲端任務, 圖片生成, 語音聽寫, 網頁搜尋, 外掛分享, connectors, memories, chronicle, sites, GitHub 整合, Slack/Linear 整合, enterprise SSO, analytics, Codex Security。</p>
+    </div>
+  </div>
+
+  <h3>疑難排解</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">確認模型 ID</div><div class="event-desc">完全符合支援的模型 ID, 例如 openai.gpt-5.5。</div></div>
+    <div class="event-item"><div class="event-name">確認地區支援</div><div class="event-desc">AWS 地區支援所選模型。</div></div>
+    <div class="event-item"><div class="event-name">確認憑證有效</div><div class="event-desc">Bedrock API 金鑰或 AWS 憑證有效且未過期。</div></div>
+    <div class="event-item"><div class="event-name">確認環境變數</div><div class="event-desc">桌面應用程式或 VS Code 使用者需將環境變數放在 ~/.codex/.env 中。</div></div>
+  </div>
+  <div class="info-box"><p>OpenAI 支援協助 Codex 用戶端設定與本機行為, AWS 憑證, IAM 權限, Bedrock 存取或帳單問題請聯繫你的 AWS 管理員或 AWS 支援。</p></div>
+</section>
+
+</main>
+
+<script>
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    document.getElementById('themeToggle').textContent = isDark ? '☀ 亮色模式' : '🌙 暗色模式';
+  }
+
+  function goStep(group, n) {
+    const tabs = document.querySelectorAll('.stage-tab[data-group="' + group + '"]');
+    const panels = document.querySelectorAll('.demo-panel[data-group="' + group + '"][data-step]');
+    panels.forEach(function(p) {
+      p.classList.toggle('visible', Number(p.dataset.step) === n);
+    });
+    tabs.forEach(function(t) {
+      const s = Number(t.dataset.step);
+      t.classList.remove('active', 'done');
+      if (s === n) t.classList.add('active');
+      else if (s < n) t.classList.add('done');
+    });
+    const ind = document.querySelector('[data-indicator="' + group + '"]');
+    if (ind) ind.textContent = '步驟 ' + (n + 1) + ' / ' + tabs.length;
+  }
+
+  function chipSelect(group, val) {
+    document.querySelectorAll('.chip[data-group="' + group + '"]').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.val === val);
+    });
+    document.querySelectorAll('.demo-panel[data-group="' + group + '"][data-val]').forEach(function(p) {
+      p.classList.toggle('visible', p.dataset.val === val);
+    });
+  }
+
+  ['rolloutStep','tokenStep','complStep','remoteStep'].forEach(function(g) { goStep(g, 0); });
+  chipSelect('mcChip', 'perm');
+  chipSelect('remoteFaq', 'r1');
+</script>
+</body>
+</html>

@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatGPT 與 Codex 使用指南</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+           background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+    header { background: linear-gradient(135deg, #dbeafe 0%, #f0f4f8 100%);
+             border-bottom: 1px solid #bfdbfe; padding: 48px 24px 40px; text-align: center; }
+    header h1 { font-size: 2.2rem; font-weight: 700; color: #1e3a5f; }
+    header p  { margin-top: 10px; color: #4a5568; font-size: 1.05rem;
+                max-width: 640px; margin-inline: auto; }
+
+    main    { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+    section { margin-bottom: 56px; }
+    h2 { font-size: 1.4rem; font-weight: 600; color: #1e40af;
+         border-left: 4px solid #3b82f6; padding-left: 14px; margin-bottom: 20px; }
+    h3 { font-size: 1.05rem; font-weight: 600; color: #1a202c; margin: 24px 0 8px; }
+    p  { color: #4a5568; margin-bottom: 12px; }
+    ul.plain { list-style: none; margin-top: 10px; }
+    ul.plain li { color: #4a5568; padding: 6px 0 6px 18px; position: relative; font-size: 0.9rem; }
+    ul.plain li::before { content: "–"; position: absolute; left: 0; color: #3b82f6; }
+
+    .code-block { background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 8px;
+      padding: 16px 18px; font-family: monospace; font-size: 0.82rem; color: #1a202c;
+      overflow-x: auto; margin-top: 14px; line-height: 1.7; white-space: pre; }
+    .kw  { color: #7c3aed; }
+    .fn  { color: #16a34a; }
+    .str { color: #d97706; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .key { color: #2563eb; }
+
+    .info-box { background: #dbeafe; border: 1px solid #93c5fd; border-radius: 10px;
+      padding: 16px 20px; margin-top: 14px; }
+    .info-box .tag { display: inline-block; background: #3b82f6; color: #fff;
+      font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+      margin-bottom: 10px; letter-spacing: 0.05em; }
+    .info-box p { color: #1e3a5f; font-size: 0.88rem; margin: 0; }
+
+    .takeaway { background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+      border: 1px solid #4ade80; border-radius: 10px; padding: 20px 24px; margin-top: 16px; }
+    .takeaway p { color: #166534; font-size: 0.9rem; margin: 0; }
+
+    .api-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .field { background: #fff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 14px 16px; }
+    .field .name { font-family: monospace; font-size: 0.85rem; color: #16a34a; font-weight: 600; }
+    .field .desc { font-size: 0.82rem; color: #4a5568; margin-top: 4px; }
+
+    .event-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .event-item { background: #fff; border: 1px solid #cbd5e0; border-radius: 6px;
+      padding: 9px 14px; display: flex; gap: 14px; align-items: baseline; }
+    .event-name { font-family: monospace; font-size: 0.82rem; color: #16a34a;
+      min-width: 150px; flex-shrink: 0; }
+    .event-desc { font-size: 0.82rem; color: #4a5568; }
+
+    .response-box { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px;
+      padding: 20px; margin-top: 16px; }
+    .response-field { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+    .response-field:last-child { border-bottom: none; }
+    .rf-key { font-family: monospace; font-size: 0.82rem; color: #d97706; width: 140px; flex-shrink: 0; }
+    .rf-val { font-size: 0.85rem; color: #374151; }
+
+    .stage-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stage-tab  { padding: 7px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #e2e8f0; color: #4a5568; transition: all 0.2s; }
+    .stage-tab.active { background: #2563eb; border-color: #3b82f6; color: #fff; }
+    .stage-tab.done   { background: #166534; border-color: #4ade80; color: #dcfce7; }
+    .step-indicator { color: #6b7280; font-size: 0.82rem; margin-top: 10px; display: block; }
+
+    .demo-panel { display: none; }
+    .demo-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .col-card { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px; padding: 16px 18px; }
+    .col-card-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+    .col-card p { font-size: 0.83rem; color: #4a5568; margin-bottom: 6px; }
+    .col-card p:last-child { margin-bottom: 0; }
+
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .chip-label { font-size: 0.75rem; color: #6b7280; }
+    .chip { padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #e2e8f0; color: #4a5568; transition: all 0.2s; }
+    .chip.active { background: #dcfce7; border-color: #4ade80; color: #166534; }
+
+    .data-table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid #cbd5e0; border-radius: 8px; }
+    table.data-table { border-collapse: collapse; width: 100%; font-size: 0.78rem; min-width: 560px; }
+    table.data-table th, table.data-table td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
+    table.data-table th { background: #f0f4f8; color: #1e3a5f; font-weight: 700; }
+    table.data-table tr:last-child td { border-bottom: none; }
+    .yes-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #4ade80; }
+    .no-dot  { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #e2e8f0; }
+
+    .search-box { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+    .search-box input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e0;
+      background: #fff; color: #1a202c; font-size: 0.85rem; }
+    .search-box input:focus { outline: 2px solid #3b82f6; }
+    .glossary-count { font-size: 0.75rem; color: #6b7280; white-space: nowrap; }
+    .glossary-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; max-height: 560px; overflow-y: auto; padding-right: 4px; }
+    .glossary-card { background: #fff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 10px 14px; }
+    .glossary-card .term { font-family: monospace; font-weight: 700; color: #2563eb; font-size: 0.85rem; }
+    .glossary-card .def { font-size: 0.8rem; color: #4a5568; margin-top: 4px; }
+    .glossary-card .applies { font-size: 0.68rem; color: #9333ea; margin-top: 6px; }
+
+    .slider-box { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px; padding: 18px 20px; margin-top: 16px; }
+    .slider-box input[type="range"] { width: 100%; margin: 10px 0; }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #9ca3af; }
+    .slider-result { margin-top: 10px; font-size: 0.85rem; color: #1e3a5f; font-weight: 600; }
+    .slider-result span { font-weight: 400; color: #4a5568; }
+
+    @media (max-width: 640px) {
+      .api-fields, .two-col, .three-col { grid-template-columns: 1fr; }
+    }
+
+    #themeToggle { position: fixed; top: 16px; right: 16px; z-index: 9999;
+      padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #fff; color: #1a202c;
+      transition: all 0.25s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); letter-spacing: 0.03em; }
+    #themeToggle:hover { border-color: #2563eb; color: #2563eb; }
+
+    body.dark { background: #0f1117; color: #e2e8f0; }
+    body.dark header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom-color: #2d3748; }
+    body.dark header h1 { color: #f7fafc; }
+    body.dark header p  { color: #a0aec0; }
+    body.dark h2 { color: #90cdf4; border-left-color: #4299e1; }
+    body.dark h3 { color: #e2e8f0; }
+    body.dark p  { color: #a0aec0; }
+    body.dark ul.plain li { color: #a0aec0; }
+    body.dark .code-block { background: #0d1117; border-color: #2d3748; color: #e2e8f0; }
+    body.dark .kw  { color: #9f7aea; }
+    body.dark .fn  { color: #68d391; }
+    body.dark .str { color: #f6ad55; }
+    body.dark .cmt { color: #4a5568; }
+    body.dark .key { color: #63b3ed; }
+    body.dark .info-box { background: #1a202c; border-color: #2a4a6a; }
+    body.dark .info-box .tag { background: #2a4a6a; color: #90cdf4; }
+    body.dark .info-box p { color: #a0aec0; }
+    body.dark .takeaway { background: linear-gradient(135deg, #1a2a1a, #1a202c); border-color: #276749; }
+    body.dark .takeaway p { color: #c6f6d5; }
+    body.dark .field { background: #1a202c; border-color: #2d3748; }
+    body.dark .field .name { color: #68d391; }
+    body.dark .field .desc { color: #718096; }
+    body.dark .event-item { background: #1a202c; border-color: #2d3748; }
+    body.dark .event-name { color: #68d391; }
+    body.dark .event-desc { color: #718096; }
+    body.dark .response-box { background: #1a202c; border-color: #2d3748; }
+    body.dark .response-field { border-bottom-color: #2d3748; }
+    body.dark .rf-key { color: #f6ad55; }
+    body.dark .rf-val { color: #a0aec0; }
+    body.dark .step-indicator { color: #718096; }
+    body.dark .stage-tab { background: #1a202c; border-color: #2d3748; color: #718096; }
+    body.dark .stage-tab.active { background: #2b6cb0; border-color: #4299e1; color: #fff; }
+    body.dark .stage-tab.done   { background: #276749; border-color: #48bb78; color: #c6f6d5; }
+    body.dark .col-card { background: #1a202c; border-color: #2d3748; }
+    body.dark .col-card-title { color: #4a5568; }
+    body.dark .col-card p { color: #a0aec0; }
+    body.dark .chip { background: #1a202c; border-color: #2d3748; color: #718096; }
+    body.dark .chip.active { background: #1c3a2a; border-color: #38a169; color: #68d391; }
+    body.dark .data-table-wrap { border-color: #2d3748; }
+    body.dark table.data-table th { background: #1a202c; color: #90cdf4; }
+    body.dark table.data-table td { border-bottom-color: #2d3748; color: #a0aec0; }
+    body.dark .no-dot { background: #2d3748; }
+    body.dark .search-box input { background: #1a202c; border-color: #2d3748; color: #e2e8f0; }
+    body.dark .glossary-card { background: #1a202c; border-color: #2d3748; }
+    body.dark .glossary-card .term { color: #63b3ed; }
+    body.dark .glossary-card .def { color: #a0aec0; }
+    body.dark .glossary-card .applies { color: #b794f4; }
+    body.dark .slider-box { background: #1a202c; border-color: #2d3748; }
+    body.dark .slider-result { color: #90cdf4; }
+    body.dark .slider-result span { color: #a0aec0; }
+    body.dark #themeToggle { background: #1a202c; color: #e2e8f0; border-color: #4a5568; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    body.dark #themeToggle:hover { border-color: #90cdf4; color: #90cdf4; }
+  </style>
+</head>
+<body>
+
+<button id="themeToggle" onclick="toggleTheme()">🌙 暗色模式</button>
+
+<header>
+  <h1>ChatGPT 與 Codex 使用指南</h1>
+  <p>從快速入門, 提示技巧, 到模型, 權限, 定價與詞彙表, 一份可互動探索的完整說明文件。</p>
+</header>
+
+<main>
+
+<section id="quickstart">
+  <h2>快速入門</h2>
+  <p>開始在網頁版或桌面應用程式中使用 ChatGPT。</p>
+
+  <h3>你可以在哪裡使用 ChatGPT</h3>
+  <p>依照你的工作方式, 選擇合適的介面。若你是開發者, 想在終端機或程式碼編輯器中使用 Codex, 可以改用 Codex CLI 或 Codex IDE 擴充功能。</p>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">桌面應用程式, 推薦</div>
+      <p>跨專案, 本機檔案與長時間執行的任務進行工作。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">網頁版, chatgpt.com</div>
+      <p>在雲端不受打斷地處理複雜任務, 不需要安裝。</p>
+    </div>
+  </div>
+
+  <h3>桌面版設定</h3>
+  <div class="stage-tabs" data-group="qsD">
+    <div class="stage-tab active" data-group="qsD" data-step="0" onclick="goStep('qsD',0)">1 · 安裝</div>
+    <div class="stage-tab" data-group="qsD" data-step="1" onclick="goStep('qsD',1)">2 · 登入</div>
+    <div class="stage-tab" data-group="qsD" data-step="2" onclick="goStep('qsD',2)">3 · 選擇工作位置</div>
+    <div class="stage-tab" data-group="qsD" data-step="3" onclick="goStep('qsD',3)">4 · 開始任務</div>
+    <div class="stage-tab" data-group="qsD" data-step="4" onclick="goStep('qsD',4)">5 · 送出訊息</div>
+  </div>
+  <div class="demo-panel visible" data-group="qsD" data-step="0">
+    <div class="response-box"><div class="response-field"><div class="rf-key">安裝桌面應用程式</div><div class="rf-val">選擇你作業系統適用的版本, Windows 或 macOS。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="qsD" data-step="1">
+    <div class="response-box"><div class="response-field"><div class="rf-key">開啟並登入</div><div class="rf-val">打開應用程式後以你的 ChatGPT 帳號登入, 也可以改用 API 金鑰使用 Codex, 但部分功能可能無法使用。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="qsD" data-step="2">
+    <div class="response-box"><div class="response-field"><div class="rf-key">選擇 ChatGPT 的工作位置</div><div class="rf-val">開始一項任務, 建立專案, 或開啟一個資料夾, ChatGPT 可以讀取並修改你所選資料夾中的檔案。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="qsD" data-step="3">
+    <div class="response-box">
+      <div class="response-field"><div class="rf-key">研究與交付成品</div><div class="rf-val">選擇 ChatGPT Work。</div></div>
+      <div class="response-field"><div class="rf-key">具備程式碼庫情境的開發</div><div class="rf-val">選擇 Codex。</div></div>
+      <div class="response-field"><div class="rf-key">快速提問</div><div class="rf-val">另外開啟 Chat。</div></div>
+    </div>
+  </div>
+  <div class="demo-panel" data-group="qsD" data-step="4">
+    <div class="response-box"><div class="response-field"><div class="rf-key">送出第一則訊息</div><div class="rf-val">描述你的目標, 並附上 ChatGPT 需要的任何檔案或情境內容。</div></div></div>
+  </div>
+  <span class="step-indicator" data-indicator="qsD">步驟 1 / 5</span>
+
+  <h3>網頁版設定</h3>
+  <div class="stage-tabs" data-group="qsW">
+    <div class="stage-tab active" data-group="qsW" data-step="0" onclick="goStep('qsW',0)">1 · 登入</div>
+    <div class="stage-tab" data-group="qsW" data-step="1" onclick="goStep('qsW',1)">2 · 開始任務</div>
+    <div class="stage-tab" data-group="qsW" data-step="2" onclick="goStep('qsW',2)">3 · 選擇工作位置</div>
+  </div>
+  <div class="demo-panel visible" data-group="qsW" data-step="0">
+    <div class="response-box"><div class="response-field"><div class="rf-key">開啟 ChatGPT 並登入</div><div class="rf-val">前往 chatgpt.com, 以你的 ChatGPT 帳號登入。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="qsW" data-step="1">
+    <div class="response-box">
+      <div class="response-field"><div class="rf-key">Chat</div><div class="rf-val">提問並以對話方式探索想法。</div></div>
+      <div class="response-field"><div class="rf-key">Work</div><div class="rf-val">研究, 分析並建立完整成品。</div></div>
+    </div>
+  </div>
+  <div class="demo-panel" data-group="qsW" data-step="2">
+    <div class="response-box"><div class="response-field"><div class="rf-key">開始一個新對話或選擇專案</div><div class="rf-val">送出第一則訊息, 描述你的目標並附上所需情境內容。</div></div></div>
+  </div>
+  <span class="step-indicator" data-indicator="qsW">步驟 1 / 3</span>
+
+  <div class="takeaway"><p>後續可以進一步了解桌面應用程式的細節, 匯入現有設定, 或探索更多使用情境。</p></div>
+</section>
+
+<section id="use-chatgpt">
+  <h2>使用 ChatGPT</h2>
+
+  <h3>從想法到有用的成果</h3>
+  <p>ChatGPT 是一個以自然語言溝通的 AI 代理。</p>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 起點</div><div class="event-desc">從一個問題, 想法, 隨手筆記, 檔案, 或需要完成的任務開始。</div></div>
+    <div class="event-item"><div class="event-name">2 · 提出需求</div><div class="event-desc">請 ChatGPT 解釋資訊, 發展想法, 草擬內容, 研究主題, 分析素材, 或創作新內容。</div></div>
+    <div class="event-item"><div class="event-name">3 · 補充情境</div><div class="event-desc">加入它需要的檔案, 網頁搜尋, 專案或外掛工具。</div></div>
+    <div class="event-item"><div class="event-name">4 · 檢視與修正</div><div class="event-desc">檢查結果, 修正方向, 要求變更, 不需要完美的第一則提示或特殊指令。</div></div>
+  </div>
+
+  <h3>選擇你的工作方式</h3>
+  <div class="three-col">
+    <div class="col-card">
+      <div class="col-card-title">Chat</div>
+      <p>與 ChatGPT 一起思考問題。</p>
+      <p>例如提問, 搜尋網路, 腦力激盪, 草擬訊息, 比較選項。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">ChatGPT Work</div>
+      <p>定義一個結果, 取得可審閱的成品。</p>
+      <p>例如建立簡報, 分析檔案, 草擬報告, 建立專案計畫。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Codex</div>
+      <p>處理軟體與技術性任務。</p>
+      <p>例如除錯程式碼, 執行測試, 審查 PR, 實作功能。</p>
+    </div>
+  </div>
+  <p style="margin-top:14px">當你需要一個實質且可審閱的成果時, 切換到 Work 並描述你需要的結果。</p>
+
+  <h3>用自然的方式與 ChatGPT 對話</h3>
+  <p>就像對一位樂於協助的同事說明需求一樣書寫, 說明你想達成的目標, 加入會改變答案的細節, 並描述你需要的格式。第一則提示只是起點, 你可以透過後續訊息補充情境或修正結果。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">"Make this shorter."</div><div class="desc">讓內容更精簡。</div></div>
+    <div class="field"><div class="name">"Give me three different approaches."</div><div class="desc">提供三種不同做法。</div></div>
+    <div class="field"><div class="name">"What assumptions are you making?"</div><div class="desc">你做了哪些假設。</div></div>
+    <div class="field"><div class="name">"Ask me questions before you continue."</div><div class="desc">在繼續之前先問我問題。</div></div>
+  </div>
+
+  <h3>帶入正確的情境內容</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">Projects</div><div class="desc">當工作會持續進行, 或依賴相同情境時, 把相關對話, 任務, 檔案與指示放進同一個專案。</div></div>
+    <div class="field"><div class="name">附加檔案</div><div class="desc">上傳文件, 簡報, 試算表, PDF 或圖片, 用於摘要, 比對, 擷取或作為新檔案的來源素材。</div></div>
+    <div class="field"><div class="name">Plugins</div><div class="desc">連接 Google Drive, SharePoint, Salesforce 或 Gong 等工具, 適合依賴外部資訊或需要重複性工作流程的任務。</div></div>
+    <div class="field"><div class="name">審閱產出檔案</div><div class="desc">當 ChatGPT 建立檔案時, 打開預覽並檢查內容, 再要求修改, 不需要重新開始。</div></div>
+  </div>
+
+  <h3>讓成果可以直接使用</h3>
+  <p>把第一份結果當成草稿, 可以檢查, 質疑並改善。看起來完整的回應仍可能不完整或有誤, 使用前請先審視重要細節。</p>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">檢查數字與事實</div><div class="event-desc">核對重要數字, 名稱, 日期, 引用與主張。</div></div>
+    <div class="event-item"><div class="event-name">逐項檢視檔案</div><div class="event-desc">打開產生的檔案, 檢查每個章節, 分頁或頁面。</div></div>
+    <div class="event-item"><div class="event-name">確認來源</div><div class="event-desc">確認 ChatGPT 使用了正確且最新的來源素材。</div></div>
+    <div class="event-item"><div class="event-name">找出缺口</div><div class="event-desc">留意遺漏的資訊與未經證實的假設。</div></div>
+  </div>
+  <div class="info-box">
+    <span class="tag">壓力測試提問</span>
+    <p>"What sources did you use for this?" / "Cite the source for each major claim." / "What assumptions did you make?" / "What information were you unable to access?" / "What would change your recommendation?" / "Check this result against the original files."</p>
+  </div>
+  <div class="takeaway"><p>法律, 財務, 醫療, 資安等高風險決策仍需要合適的專業審查, ChatGPT 用於支援判斷, 而非取代判斷。</p></div>
+</section>
+
+<section id="get-started-work">
+  <h2>Get started with Work</h2>
+
+  <div class="info-box">
+    <span class="tag">Work 是什麼</span>
+    <p>Work 是把實際工作委派給 ChatGPT 的一種方式。當你想要一個答案, 解釋, 腦力激盪或短篇草稿時使用 Chat；當你想要 ChatGPT 完成具有明確結果的任務, 例如簡報, 分析, 週期性更新, 工作流程或可審閱使用的檔案時, 使用 Work。</p>
+  </div>
+  <p>Work 可以使用你的檔案, 外掛與已核准的工具來擷取資訊, 建立成品, 執行工作流程並完成可供審閱的工作。你可以追蹤進度, 回答問題, 調整方向, 並核准重要動作。桌面應用程式中, Work 還能使用本機檔案, 應用程式與瀏覽器。</p>
+
+  <h3>先嘗試哪些任務</h3>
+  <p>先確認 ChatGPT 中已選擇 Work, 再挑選你的第一項任務, 好的任務需要明確的結果, 少量來源素材, 以及可供審閱的產出。</p>
+  <div class="chip-row" data-chipgroup="wk">
+    <span class="chip-label">選擇使用情境:</span>
+    <span class="chip active" data-group="wk" data-val="deck" onclick="chipSelect('wk','deck')">建立簡報</span>
+    <span class="chip" data-group="wk" data-val="sheet" onclick="chipSelect('wk','sheet')">建立比較試算表</span>
+    <span class="chip" data-group="wk" data-val="recurring" onclick="chipSelect('wk','recurring')">設定週期性更新</span>
+  </div>
+  <div class="demo-panel visible" data-group="wk" data-val="deck">
+    <p>把筆記, 文件, 研究或會議素材轉換成結構化的簡報。</p>
+    <div class="response-box"><div class="response-field"><div class="rf-key">範例提示</div><div class="rf-val">Review the attached source materials and create an eight slide presentation for [audience]. Focus on the main themes, include supporting evidence, and flag anything that needs human review.</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="wk" data-val="sheet">
+    <p>把筆記, 檔案或研究轉換成能比較選項並協助決策的試算表。</p>
+    <div class="response-box"><div class="response-field"><div class="rf-key">範例提示</div><div class="rf-val">Create a spreadsheet comparing the options for [decision]. Include the most important criteria, score each option, flag risks or missing information, and add a summary tab with a recommendation and next steps.</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="wk" data-val="recurring">
+    <p>使用排程任務讓 Work 隨時間重複, 監控或更新某項工作。</p>
+    <div class="response-box"><div class="response-field"><div class="rf-key">範例提示</div><div class="rf-val">Every Monday morning, review new updates from @Slack and @Google Drive for [project]. Refresh the meeting agenda with decisions, blockers, owners, and open questions.</div></div></div>
+  </div>
+
+  <h3>使用 Work 的最佳實踐</h3>
+  <p>當任務符合以下特質時, Work 是很好的選擇：</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">多重來源</div><div class="desc">使用多個來源, 外掛, 工具或步驟。</div></div>
+    <div class="field"><div class="name">耗時</div><div class="desc">手動完成需要花費不少時間。</div></div>
+    <div class="field"><div class="name">可重複使用</div><div class="desc">產出你會審閱, 編輯或重複使用的成果。</div></div>
+    <div class="field"><div class="name">需要延續</div><div class="desc">需要隨時間重複, 監控或更新。</div></div>
+  </div>
+  <div class="info-box">
+    <span class="tag">較佳範例</span>
+    <p>Review the attached interview notes and survey results. Create an eight slide presentation for the product leadership meeting. Focus on the three most common customer problems, include supporting evidence, and flag claims that are not well supported.</p>
+  </div>
+
+  <h3>加入 plugins 取得更多情境與更好的產出</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 開啟 Plugins</div><div class="event-desc">在左側邊欄選擇 Plugins 檢視外掛庫。</div></div>
+    <div class="event-item"><div class="event-name">2 · 安裝外掛</div><div class="event-desc">安裝與你工作最相關的外掛。</div></div>
+    <div class="event-item"><div class="event-name">3 · 指定工具</div><div class="event-desc">在提示中輸入 @ 加上外掛名稱, 指向特定工具。</div></div>
+  </div>
+
+  <h3>有效率地使用 ChatGPT Work</h3>
+  <p>較長或較複雜的任務可能使用更多額度, 因為 Work 在替你做更多事。專注於完成成果的價值, 而不只是提示的數量。</p>
+  <div class="takeaway"><p>透過設定有用的界線來聚焦任務, 例如 "只使用這些來源", "只比較前五個選項" 或 "在傳送任何內容前先停下來"。快速提問, 簡短改寫或只需要建議的決策仍適合使用 Chat。</p></div>
+</section>
+
+<section id="import">
+  <h2>Import from another agent</h2>
+  <p>把其他代理中支援的設定與近期工作匯入 ChatGPT。</p>
+
+  <div class="info-box">
+    <span class="tag">總覽</span>
+    <p>使用匯入流程, 把你的指示, 設定, skills, plugins, 專案與近期工作從其他代理帶入 ChatGPT 桌面應用程式。應用程式會直接匯入受支援的項目, 並讓你完成需要授權的外掛或連線設定。匯入不會變更或刪除你既有的代理設定。</p>
+  </div>
+
+  <h3>開始匯入</h3>
+  <div class="stage-tabs" data-group="imp">
+    <div class="stage-tab active" data-group="imp" data-step="0" onclick="goStep('imp',0)">1</div>
+    <div class="stage-tab" data-group="imp" data-step="1" onclick="goStep('imp',1)">2</div>
+    <div class="stage-tab" data-group="imp" data-step="2" onclick="goStep('imp',2)">3</div>
+    <div class="stage-tab" data-group="imp" data-step="3" onclick="goStep('imp',3)">4</div>
+    <div class="stage-tab" data-group="imp" data-step="4" onclick="goStep('imp',4)">5</div>
+    <div class="stage-tab" data-group="imp" data-step="5" onclick="goStep('imp',5)">6</div>
+  </div>
+  <div class="demo-panel visible" data-group="imp" data-step="0"><p>在 ChatGPT 桌面應用程式中, 開啟 Settings > Import, 若 Import 尚未出現在設定分頁中, 打開 General 並找到 Import other agent setup。</p></div>
+  <div class="demo-panel" data-group="imp" data-step="1"><p>選擇 Import。</p></div>
+  <div class="demo-panel" data-group="imp" data-step="2"><p>選擇你想從中匯入的代理, 然後選擇 Continue。</p></div>
+  <div class="demo-panel" data-group="imp" data-step="3"><p>在 Select items to import 畫面, 選擇 Continue 匯入全部項目, 或選擇 Customize 挑選特定項目。</p></div>
+  <div class="demo-panel" data-group="imp" data-step="4"><p>若你自訂匯入內容, 選擇要帶入的項目, 再選擇 Confirm。</p></div>
+  <div class="demo-panel" data-group="imp" data-step="5"><p>匯入完成後, 開啟一個匯入的專案或任務以繼續工作。</p></div>
+  <span class="step-indicator" data-indicator="imp">步驟 1 / 6</span>
+
+  <h3>匯入如何運作</h3>
+  <p>匯入流程會檢查你的使用者層級設定與既有專案, 使用者層級設定來自你機器上的檔案, 專案層級設定則來自你所選擇的儲存庫與資料夾中的檔案。</p>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 偵測</div><div class="event-desc">偵測受支援的設定與近期工作。</div></div>
+    <div class="event-item"><div class="event-name">2 · 匯入</div><div class="event-desc">匯入你所選擇的項目。</div></div>
+    <div class="event-item"><div class="event-name">3 · 保留原設定</div><div class="event-desc">讓你既有的代理設定維持不變。</div></div>
+    <div class="event-item"><div class="event-name">4 · 檢查授權</div><div class="event-desc">檢查匯入的外掛或連線是否仍需要設定。</div></div>
+    <div class="event-item"><div class="event-name">5 · 顯示狀態卡</div><div class="event-desc">當你需要完成設定時顯示狀態卡片。</div></div>
+  </div>
+
+  <h3>ChatGPT 可以匯入哪些內容</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>匯入項目</th><th>目的地</th></tr></thead>
+      <tbody>
+        <tr><td>Instruction files</td><td>AGENTS.md</td></tr>
+        <tr><td>settings.json</td><td>config.toml</td></tr>
+        <tr><td>Skills</td><td>Skills</td></tr>
+        <tr><td>Plugins</td><td>Plugins</td></tr>
+        <tr><td>Existing project folders</td><td>使用相同資料夾的 Projects</td></tr>
+        <tr><td>最近 30 天的對話</td><td>ChatGPT tasks</td></tr>
+        <tr><td>MCP server configuration</td><td>Codex MCP configuration</td></tr>
+        <tr><td>Hooks</td><td>Codex hooks</td></tr>
+        <tr><td>Slash commands</td><td>Skills</td></tr>
+        <tr><td>Subagents</td><td>Codex agents</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>匯入後應該檢查的項目</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">工具限制</div><div class="event-desc">匯入的 skills 與 agents 中的工具限制或權限。</div></div>
+    <div class="event-item"><div class="event-name">MCP 設定</div><div class="event-desc">使用自訂驗證, headers, 環境變數或傳輸方式的 MCP 伺服器設定, 你可能需要重新登入。</div></div>
+    <div class="event-item"><div class="event-name">Hooks 行為</div><div class="event-desc">匯入後行為可能不同的 hooks。</div></div>
+    <div class="event-item"><div class="event-name">後續設定</div><div class="event-desc">需要手動處理的 plugins, marketplaces 或其他設定。</div></div>
+    <div class="event-item"><div class="event-name">提示範本</div><div class="event-desc">依賴參數, shell 插值或檔案路徑佔位符的提示範本或指令風格提示。</div></div>
+  </div>
+  <div class="takeaway"><p>匯入完成後, 打開其中一個匯入的專案, 從那裡繼續你的下一項任務。</p></div>
+</section>
+
+<section id="prompting">
+  <h2>Prompting</h2>
+  <p>Prompting 是你透過問題, 指示或目標與 ChatGPT 溝通需求的方式, 不需要技術性語法, 用你自己的話開始, 再透過後續訊息修正。</p>
+
+  <h3>提示的四個要素</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">Goal</div><div class="desc">ChatGPT 應該達成什麼。</div></div>
+    <div class="field"><div class="name">Context</div><div class="desc">哪些資訊或來源會有幫助。</div></div>
+    <div class="field"><div class="name">Output</div><div class="desc">你需要什麼格式, 長度或詳細程度。</div></div>
+    <div class="field"><div class="name">Boundaries</div><div class="desc">哪些限制或檢查很重要。</div></div>
+  </div>
+  <p style="margin-top:12px">只使用相關的部分即可, 不需要僵化的固定格式。</p>
+
+  <h3>描述你需要的結果</h3>
+  <p>以你想要的結果為主, 而不是逐步指示。當格式或受眾會影響輸出時再提及, 讓 ChatGPT 能調整做法, 而不是遵循僵化流程。</p>
+
+  <h3>加入有用的情境</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">附加檔案</div><div class="event-desc">附上文件, 試算表, 簡報或 PDF 供摘要或轉換。</div></div>
+    <div class="event-item"><div class="event-name">視覺情境</div><div class="event-desc">當視覺內容重要時附上截圖或圖表。</div></div>
+    <div class="event-item"><div class="event-name">網頁搜尋</div><div class="event-desc">要求網頁搜尋以取得目前資訊與來源。</div></div>
+    <div class="event-item"><div class="event-name">專案</div><div class="event-desc">在任務共享相關檔案或來源時使用專案。</div></div>
+  </div>
+
+  <h3>設定能避免真正問題的界線</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">保留核准內容</div><div class="event-desc">保留已核准的日期與預算數字。</div></div>
+    <div class="event-item"><div class="event-name">只用指定來源</div><div class="event-desc">只使用提供的來源, 並標示缺漏的資訊。</div></div>
+    <div class="event-item"><div class="event-name">維持在預算內</div><div class="event-desc">讓建議維持在指定預算範圍內。</div></div>
+    <div class="event-item"><div class="event-name">先準備草稿</div><div class="event-desc">準備草稿但不要傳送或發佈。</div></div>
+  </div>
+
+  <h3>Chat 提示範例</h3>
+  <div class="chip-row" data-chipgroup="promptChat">
+    <span class="chip active" data-group="promptChat" data-val="understand" onclick="chipSelect('promptChat','understand')">了解主題</span>
+    <span class="chip" data-group="promptChat" data-val="draft" onclick="chipSelect('promptChat','draft')">草擬與潤飾文字</span>
+    <span class="chip" data-group="promptChat" data-val="compare" onclick="chipSelect('promptChat','compare')">比較選項</span>
+    <span class="chip" data-group="promptChat" data-val="plan" onclick="chipSelect('promptChat','plan')">擬定實用計畫</span>
+  </div>
+  <div class="demo-panel visible" data-group="promptChat" data-val="understand"><p>針對特定受眾請求解釋, 並附上具體範例與新名詞的清楚定義。</p></div>
+  <div class="demo-panel" data-group="promptChat" data-val="draft"><p>建立語氣友善的電子郵件或訊息, 附上字數與語氣等具體限制。</p></div>
+  <div class="demo-panel" data-group="promptChat" data-val="compare"><p>以表格呈現比較內容, 並說明各選項之間的取捨。</p></div>
+  <div class="demo-panel" data-group="promptChat" data-val="plan"><p>擬定一連串步驟, 附上時間限制或食材重複使用等具體限制。</p></div>
+
+  <h3>Work 的提示技巧</h3>
+  <p>把耗時, 涉及多重來源, 工具, 步驟或較大成品的工作交給 Work 任務。描述結果, 提供來源, 說明受眾, 並解釋你會如何審閱。</p>
+  <div class="takeaway"><p>常見的 Work 任務包括把來源素材轉換成完整檔案, 研究決策, 以及協調專案上線。</p></div>
+
+  <h3>Codex 的提示技巧</h3>
+  <p>把與程式碼相關的工作交給 Codex, 說明你想要的行為, 指出相關程式碼, 保留限制條件, 並說明驗證方式。</p>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">解釋程式碼庫</div><div class="event-desc">在新人加入時說明程式碼庫。</div></div>
+    <div class="event-item"><div class="event-name">修復重現性錯誤</div><div class="event-desc">依明確重現步驟修復錯誤。</div></div>
+    <div class="event-item"><div class="event-name">撰寫測試</div><div class="event-desc">依明確範圍撰寫測試。</div></div>
+    <div class="event-item"><div class="event-name">從截圖建立原型</div><div class="event-desc">依截圖快速建立原型。</div></div>
+    <div class="event-item"><div class="event-name">迭代 UI</div><div class="event-desc">以即時更新方式迭代介面。</div></div>
+    <div class="event-item"><div class="event-name">委派重構</div><div class="event-desc">把重構工作委派給雲端環境。</div></div>
+    <div class="event-item"><div class="event-name">本機程式碼審查</div><div class="event-desc">進行本機程式碼審查。</div></div>
+    <div class="event-item"><div class="event-name">審查 GitHub PR</div><div class="event-desc">審查 GitHub pull request。</div></div>
+    <div class="event-item"><div class="event-name">更新文件</div><div class="event-desc">更新專案文件。</div></div>
+  </div>
+</section>
+
+<section id="personalize">
+  <h2>Personalize ChatGPT</h2>
+  <p>設定偏好, 並讓有用的情境延續到不同對話與任務中。你可以在桌面應用程式設定中隨時控制並調整這些個人化功能。</p>
+
+  <h3>選擇一種個性</h3>
+  <div class="info-box"><span class="tag">Personality</span><p>在 Settings > Personalization 選擇 Friendly, Pragmatic 或 None 作為預設個性, 個性會改變 ChatGPT 的溝通方式, 但不會改變模型能做的事。</p></div>
+
+  <h3>加入自訂指示</h3>
+  <div class="info-box"><span class="tag">Custom instructions</span><p>用於希望 ChatGPT 在所有對話與任務中都遵循的偏好, 例如你偏好的回應風格。在 Codex 中, 這些個人指示會儲存在你的全域 AGENTS.md 檔案裡, 專案與儲存庫也可以提供各自的指示。</p></div>
+
+  <h3>以記憶延續情境</h3>
+  <div class="info-box"><span class="tag">Memories</span><p>讓 ChatGPT 把先前對話與任務中有用的情境帶入未來工作, 可以包含穩定的偏好, 重複性工作流程, 專案慣例與其他你原本需要重複說明的內容。記憶與必要的專案指引不同, 需要一律遵循的指示仍應放在 AGENTS.md 或已納入版控的專案文件中。</p></div>
+
+  <h3>以 Chronicle 加入近期螢幕情境</h3>
+  <div class="info-box"><span class="tag">實驗性功能</span><p>Chronicle 是一項選擇性加入的研究預覽功能, 可用近期螢幕內容擴充記憶, 適用於符合資格的 ChatGPT Pro 訂閱者在 macOS 桌面應用程式中使用, 需要螢幕錄製與輔助使用權限。啟用前請先檢視其隱私, 安全, 儲存與速率限制考量, 你可以隨時暫停或停用 Chronicle。</p></div>
+
+  <h3>管理個人化設定</h3>
+  <p>打開 Settings 更新你的個性, 自訂指示, 記憶與其他可用的個人化控制項。</p>
+</section>
+
+<section id="skills-plugins">
+  <h2>Skills &amp; Plugins</h2>
+  <p>Skills 與 plugins 協助 ChatGPT 以正確的指示, 資源與工具完成重複性工作, 減少每次對話都需要貼上相同提示, 範本, 需求或流程的麻煩。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">Skill</div><div class="desc">封裝了針對特定任務或工作流程的指示與支援資源。</div></div>
+    <div class="field"><div class="name">Plugin</div><div class="desc">可安裝的套件, 可以包含 skills, 一個 app, 或兩者兼具, apps 由 MCP 伺服器提供支援, 並可選擇性包含自訂 ChatGPT UI。</div></div>
+  </div>
+
+  <h3>使用 skills 處理重複性工作</h3>
+  <p>skill 是一種可重複使用的工作流程, 提供 ChatGPT 針對特定任務的指引, 可以捕捉你已經在執行的重複性工作方式, 讓 ChatGPT 每次遇到相同任務時遵循同樣的流程。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">名稱與描述</div><div class="desc">幫助 ChatGPT 辨識何時該套用這個 skill。</div></div>
+    <div class="field"><div class="name">工作流程指示</div><div class="desc">定義流程與預期結果。</div></div>
+    <div class="field"><div class="name">支援資源</div><div class="desc">範本, 範例, 品牌指引, schema 或已連接的工具。</div></div>
+  </div>
+
+  <h3>建立 skills</h3>
+  <div class="stage-tabs" data-group="skBuild">
+    <div class="stage-tab active" data-group="skBuild" data-step="0" onclick="goStep('skBuild',0)">1 · 選定任務</div>
+    <div class="stage-tab" data-group="skBuild" data-step="1" onclick="goStep('skBuild',1)">2 · 描述流程</div>
+    <div class="stage-tab" data-group="skBuild" data-step="2" onclick="goStep('skBuild',2)">3 · 檢視並試用</div>
+    <div class="stage-tab" data-group="skBuild" data-step="3" onclick="goStep('skBuild',3)">4 · 安裝並重複使用</div>
+  </div>
+  <div class="demo-panel visible" data-group="skBuild" data-step="0"><p>選擇一項聚焦的任務, 記下你通常從哪裡開始, 例如檔案, 連結或筆記, 以及完成結果應該長什麼樣子。</p></div>
+  <div class="demo-panel" data-group="skBuild" data-step="1"><p>對 ChatGPT 描述工作流程, 用 "Build me a skill…" 開始新對話, 說明目標, 步驟, 預期格式與必須包含或避免的內容, 有範本或好範例時一併附上。</p></div>
+  <div class="demo-panel" data-group="skBuild" data-step="2"><p>檢查指示內容, 以實際情境測試這個 skill, 若結果漏了某個步驟或偏離你要的格式, 進行修正。</p></div>
+  <div class="demo-panel" data-group="skBuild" data-step="3"><p>啟用後, ChatGPT 可在相關請求中使用這個 skill, 你也可以明確選用它, 在工作區設定允許時還能與同事分享。</p></div>
+  <span class="step-indicator" data-indicator="skBuild">步驟 1 / 4</span>
+
+  <h3>使用 plugins 處理工具與共享工作流程</h3>
+  <p>plugin 讓可重複使用的能力更容易安裝與分享, 一個 plugin 可以結合 skills 與 GitHub, Google Drive 或 Slack 等服務的 apps, 並可包含 MCP 伺服器以提供更多工具與情境。瀏覽外掛目錄, 在想加入現成工作流程時安裝, 而不需要自行建立。</p>
+
+  <h3>如何選擇 skill 或 plugin</h3>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">Skill</div>
+      <p>當你需要 "針對聚焦任務的可重複使用指示" 時選擇 skill。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Plugin</div>
+      <p>當你想要 "能結合指示與已連接服務或其他工具的可安裝套件" 時選擇 plugin。</p>
+    </div>
+  </div>
+  <p style="margin-top:12px">你也可以用 Record &amp; Replay 示範一個工作流程, 把錄製內容轉換成可重複使用的 skill。</p>
+</section>
+
+<section id="permissions">
+  <h2>Permissions</h2>
+  <p>權限控制 ChatGPT 桌面應用程式與 Codex 在 CLI 或 IDE 中如何處理本機動作, 例如編輯檔案, 執行指令與使用網際網路。你選擇的模式決定了 ChatGPT 可以自行完成的範圍, 以及需要審查的部分。多數工作建議先從 Ask for approval 開始。</p>
+
+  <h3>權限模式</h3>
+  <div class="three-col">
+    <div class="col-card">
+      <div class="col-card-title">Ask for approval</div>
+      <p>Codex 可以讀取並編輯目前工作區的檔案, 執行例行本機指令, 在使用網際網路或超出工作區邊界前會先詢問。</p>
+      <div class="response-box" style="margin-top:10px">
+        <div class="response-field"><div class="rf-key">Sandbox</div><div class="rf-val">workspace-write</div></div>
+        <div class="response-field"><div class="rf-key">Approvals</div><div class="rf-val">on-request</div></div>
+        <div class="response-field"><div class="rf-key">Reviewer</div><div class="rf-val">user</div></div>
+      </div>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Approve for me</div>
+      <p>設定中稱為 Auto review, ChatGPT 可讀取並編輯工作區檔案, 並自動審查額外存取請求, 這項自動審查仍可能出錯。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Full access</div>
+      <p>ChatGPT 可以編輯電腦上任何檔案, 並在無須核准的情況下執行具備網路存取的指令。</p>
+    </div>
+  </div>
+
+  <h3>啟用模式</h3>
+  <div class="info-box"><p>Ask for approval 一律可用。若要在權限選單加入 Approve for me 或 Full access, 請在桌面應用程式中開啟 Settings > General, 啟用一種模式只會讓它出現在選單中, 不會自動選取這個模式, 也不會改變既有對話。</p></div>
+
+  <h3>權限如何運作</h3>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">Sandbox</div>
+      <p>定義 ChatGPT 可以存取哪些檔案與網路資源。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Approvals</div>
+      <p>決定何時暫停等待核准, 或送交自動審查。改變審查者不會擴大 sandbox 範圍, 例如 Approve for me 與 Ask for approval 維持相同的工作區邊界, 只是把跨越邊界的請求送交自動審查。</p>
+    </div>
+  </div>
+
+  <h3>ChatGPT 的動作該如何被核准</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>模式</th><th>行為</th></tr></thead>
+      <tbody>
+        <tr><td>Ask for approval</td><td>編輯外部檔案與使用網際網路一律先詢問</td></tr>
+        <tr><td>Approve for me</td><td>只針對被判定可能不安全的動作詢問</td></tr>
+        <tr><td>Full access</td><td>由 requirements.toml 停用</td></tr>
+        <tr><td>Custom (config.toml)</td><td>使用 config.toml 中定義的權限</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>在 CLI 中輸入 <span style="font-family:monospace">/permissions</span> 可檢視細節。</p>
+</section>
+
+<section id="whats-new">
+  <h2>What's new</h2>
+  <p>每週摘要會改變你工作方式的 ChatGPT 與 Codex 功能, 附上範例與延伸連結, 每個版本更新, 錯誤修正與小幅改善請參考 Codex changelog。</p>
+
+  <div class="chip-row" data-chipgroup="wnews">
+    <span class="chip active" data-group="wnews" data-val="w1" onclick="chipSelect('wnews','w1')">7/6 - 7/10</span>
+    <span class="chip" data-group="wnews" data-val="w2" onclick="chipSelect('wnews','w2')">6/15 - 6/19</span>
+    <span class="chip" data-group="wnews" data-val="w3" onclick="chipSelect('wnews','w3')">6/8 - 6/12</span>
+    <span class="chip" data-group="wnews" data-val="w4" onclick="chipSelect('wnews','w4')">6/1 - 6/5</span>
+    <span class="chip" data-group="wnews" data-val="w5" onclick="chipSelect('wnews','w5')">5/25 - 5/29</span>
+    <span class="chip" data-group="wnews" data-val="w6" onclick="chipSelect('wnews','w6')">5/18 - 5/22</span>
+    <span class="chip" data-group="wnews" data-val="w7" onclick="chipSelect('wnews','w7')">5/11 - 5/15</span>
+    <span class="chip" data-group="wnews" data-val="w8" onclick="chipSelect('wnews','w8')">5/4 - 5/8</span>
+    <span class="chip" data-group="wnews" data-val="w9" onclick="chipSelect('wnews','w9')">4/20 - 4/24</span>
+    <span class="chip" data-group="wnews" data-val="w10" onclick="chipSelect('wnews','w10')">4/13 - 4/17</span>
+    <span class="chip" data-group="wnews" data-val="w11" onclick="chipSelect('wnews','w11')">4/6 - 4/10</span>
+    <span class="chip" data-group="wnews" data-val="w12" onclick="chipSelect('wnews','w12')">3/23 - 3/27</span>
+    <span class="chip" data-group="wnews" data-val="w13" onclick="chipSelect('wnews','w13')">3/16 - 3/20</span>
+    <span class="chip" data-group="wnews" data-val="w14" onclick="chipSelect('wnews','w14')">3/9 - 3/13</span>
+    <span class="chip" data-group="wnews" data-val="w15" onclick="chipSelect('wnews','w15')">3/2 - 3/6</span>
+    <span class="chip" data-group="wnews" data-val="w16" onclick="chipSelect('wnews','w16')">2/9 - 2/13</span>
+    <span class="chip" data-group="wnews" data-val="w17" onclick="chipSelect('wnews','w17')">2/2 - 2/6</span>
+  </div>
+
+  <div class="demo-panel visible" data-group="wnews" data-val="w1">
+    <h3>以 ChatGPT Work 承擔更具野心的工作</h3>
+    <p>ChatGPT Work 是一個能從你的檔案與外掛蒐集情境, 跨工作流程採取行動, 並建立可審閱文件的代理, 由 GPT-5.6 驅動, 會把目標拆解成步驟, 並在你監控進度與核准動作時長時間運作。排程任務可在你離開時自動化工作流程, 依單次執行, 排程, 特定事件或監控變更來運作。</p>
+    <h3>選擇合適的 GPT-5.6 模型</h3>
+    <p>三款 GPT-5.6 模型可跨 ChatGPT Work, 桌面應用程式, Codex CLI 與 IDE 擴充功能使用。Sol 處理複雜的程式撰寫與資安工作, Terra 在能力與成本間取得平衡, Luna 提供最快最省成本的選項, 預設的 Power 設定使用中等推理強度的 Sol。</p>
+    <h3>在 ChatGPT 桌面應用程式使用 Codex</h3>
+    <p>自 7 月 9 日起, Codex 併入新的 ChatGPT 桌面應用程式, 支援 macOS 與 Windows, Codex 保留專屬的程式撰寫體驗, 包括行內編輯, 側邊欄 pull request 審查, 由 GPT-5.6 驅動的更快 Computer Use, 以及多儲存庫專案。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w2">
+    <h3>把示範過的工作流程變成可重複使用的 skills</h3>
+    <p>Record &amp; Replay 讓你在 macOS 上示範工作流程並轉換成可重複使用的 skills, 適合比起描述更容易示範的重複性任務, 之後可以再精修並用新輸入重播產生的 skill。</p>
+    <h3>在另一台主機上延續任務</h3>
+    <p>Task handoff 可在你的本機電腦與已連接的遠端主機之間搬移任務與其 Git 狀態, Codex 會在目的地建立或重複使用 worktree, 並轉移任務。</p>
+    <h3>從 iOS 瀏覽並審查工作區</h3>
+    <p>ChatGPT 行動應用程式中的 Remote 新增了工作區檔案瀏覽器, 新任務的目錄選擇器, 可展開的 diff 控制項, 以及每項任務的 MCP 核准選項。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w3">
+    <h3>以 Browser Developer mode 除錯網頁應用程式</h3>
+    <p>Developer mode 讓 Codex 在 Chrome 與內建瀏覽器中受控地存取 Chrome DevTools Protocol 能力, Codex 可在除錯時檢視網路流量, 主控台輸出, 執行階段錯誤與頁面狀態。瀏覽器使用速度因 CDP 與 DOM 快照最佳化, 減少瀏覽器往返次數, 最多快上一倍。</p>
+    <h3>把你的設定帶入 Codex</h3>
+    <p>新的遷移流程在導入期間, 從其他程式撰寫代理匯入受支援的設定。Codex 應用程式新增了用於建立專案指示的 /init, 並改善了外掛管理與瀏覽器診斷。</p>
+    <h3>從 iOS 設定 Codex 任務</h3>
+    <p>iOS 上的 Remote 現在可以選擇分支, 建立 worktree, 執行環境設定腳本, 管理目標, 並加入行內審查意見。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w4">
+    <h3>以 Sites 建立並部署網站</h3>
+    <p>Sites 讓 ChatGPT 建立, 儲存, 部署並檢視由 OpenAI 代管的網站, 儀表板, 內部工具, 網頁應用程式與遊戲, Sites 有專屬入口, 可回到專案並管理代管環境變數。</p>
+    <h3>在 Amazon Bedrock 上使用 Codex</h3>
+    <p>Codex 現在可搭配 Amazon Bedrock 進行本機工作流程, 具備 AWS 管理的驗證, 帳號控管與計費。iOS 上的 Remote 新增了選擇性的應用程式內鎖定, 後續行為設定, 以及對 Windows 機器的 SSH 連線。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w5">
+    <h3>使用 Windows 應用程式並遠端控制 Codex</h3>
+    <p>Computer use 新增了在 Windows 桌面應用程式中檢視, 點擊與輸入的支援, 在 Windows 上, Codex 使用作用中的桌面, 並在任務執行期間接管前景, 遠端連線同樣支援 Windows。iOS 上的 Remote 新增了 Spotlight 與 Shortcuts 進入點, 已封存任務瀏覽, 以及儲存或複製圖片的選項。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w6">
+    <h3>以 Appshots 從任何 Mac 應用程式取得情境</h3>
+    <p>Appshots 會在你同時按下兩個 Command 鍵時, 把最上層的應用程式視窗連同截圖與可用文字傳送給 Codex, Codex 可以不需要手動複製貼上, 就從設計工具, 儀表板與文件中取得工作情境。</p>
+    <h3>追蹤長時間執行的目標</h3>
+    <p>Goal mode 在 Codex 應用程式, IDE 擴充功能與 CLI 中正式推出, 適用於跨越數小時或數天的目標, Locked use 讓 Codex 在 Mac 鎖定後仍能繼續已核准的 computer use 工作, 也包括透過 ChatGPT 行動應用程式中的 Remote。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w7">
+    <h3>從行動裝置延續桌面工作</h3>
+    <p>在 ChatGPT 行動應用程式中, Remote 可連接到執行 ChatGPT 桌面應用程式的 Mac, 工作在已連接的主機上執行, 讓你的專案, 檔案, 憑證, 外掛, skills 與設定在從手機延續工作時依然可用。</p>
+    <h3>自動化受信任的工作流程</h3>
+    <p>Hooks 正式推出, 可在代理生命週期的關鍵時間點執行自訂指令, ChatGPT Enterprise 管理員可為受信任的腳本, 排程器與私有 CI runner 啟用 Codex access tokens。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w8">
+    <h3>跨瀏覽器分頁工作</h3>
+    <p>Chrome 擴充功能可在背景跨分頁平行工作, 不會接管你的瀏覽器, 你可以控制 Codex 能使用哪些網站, 讓在同一項任務中結合研究, 資料輸入與跨網頁應用程式驗證變得可行。Codex 應用程式新增了聽寫清理與自訂字典, 用於名稱, 檔案路徑與程式碼符號, ChatGPT Enterprise 工作區擁有者可允許成員建立用於受信任非互動工作流程的 Codex access tokens。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w9">
+    <h3>以 GPT-5.5 處理複雜工作</h3>
+    <p>GPT-5.5 成為 Codex 中多數任務的建議模型, 在實作, 除錯, 測試, computer use, 研究與完整知識工作產出上都有優勢。</p>
+    <h3>讓 Codex 操作瀏覽器並審查核准請求</h3>
+    <p>內建瀏覽器中的 Computer Use 讓 Codex 點擊本機開發伺服器以重現問題並驗證修復, 符合資格的核准請求可交由自動核准審查。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w10">
+    <h3>在同一處預覽與操作工作</h3>
+    <p>內建瀏覽器新增了即時預覽與頁面留言, Computer Use 也讓 Codex 能檢視並操作 macOS 應用程式, 讓視覺化實作與端到端驗證成為同一項任務的一部分。</p>
+    <h3>從任務開始並持續推進</h3>
+    <p>獨立任務讓你不需要先選擇專案資料夾就能開始工作, 同一版本也加入了從任務排程工作, pull request 情境, 以及更豐富的檔案預覽。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w11">
+    <h3>在應用程式中審查並發佈 pull request</h3>
+    <p>審查體驗新增了可收合的行內意見, 行內與獨立審查模式, 以及更清楚的 Git 與來源情境, Pull request 活動移入應用程式, 與工作區檔案分頁並列。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w12">
+    <h3>把工作流程封裝成 plugins</h3>
+    <p>Plugins 推出, 是 "可安裝的 skills, 連接器與 MCP 伺服器組合", 讓完整工作流程更容易被發現, 安裝與分享, 重新設計的外掛與 skill 頁面讓內容與狀態更清楚, 同一週也推出了過去任務的搜尋功能。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w13">
+    <h3>從更早訊息分支並在編寫時選擇工具</h3>
+    <p>你可以從較早的訊息分支出一個任務, 讓探索新做法更容易。模型與推理指令在草擬時即可使用, GPT-5.4 mini 為較輕量任務新增了更快的選項。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w14">
+    <h3>以正確環境排程工作</h3>
+    <p>排程任務可以在本機或 worktree 中執行, 並指定明確的模型與推理層級, 可重複使用範本讓常見任務設定更快, 自訂主題也讓工作區更個人化。</p>
+    <h3>讓 Codex 檢視終端機輸出</h3>
+    <p>Codex 學會讀取目前任務的整合終端機, 直接檢視執行中的開發伺服器或建置輸出。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w15">
+    <h3>在 Windows 原生執行 Codex</h3>
+    <p>Codex 應用程式在 Windows 上推出, 具備原生 PowerShell 與 sandbox 支援, 並加入 worktrees, 排程任務與 skills。</p>
+    <h3>在 Local 與 Worktree 之間搬移任務</h3>
+    <p>Local 與 Worktree 之間的交接讓你能在保留情境的情況下搬移進行中的任務, GPT-5.4 為 Codex 帶來程式撰寫, computer use 與更長情境的工作流程。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w16">
+    <h3>即時迭代並分支做法</h3>
+    <p>GPT-5.3-Codex-Spark 進入研究預覽, 是一款接近即時的程式撰寫迭代模型, 應用程式新增了對話分支功能與一個浮動且置頂的任務視窗。</p>
+  </div>
+  <div class="demo-panel" data-group="wnews" data-val="w17">
+    <h3>Codex 應用程式在 macOS 上推出</h3>
+    <p>Codex 應用程式作為桌面工作區推出, 具備平行專案對話, 內建 Git 審查, worktrees, skills, 排程任務與語音聽寫。</p>
+    <h3>操控進行中的工作並加入檔案</h3>
+    <p>回合中操控讓你能重新導引 Codex, 而不需要停止進行中的回應, 檔案附加功能也擴展到圖片以外的類型。</p>
+  </div>
+</section>
+
+<section id="models">
+  <h2>Models</h2>
+  <p>認識驅動 ChatGPT Work 與 Codex 的 AI 模型。</p>
+
+  <h3>選擇模型</h3>
+  <p>在 ChatGPT 桌面應用程式中, 使用輸入框下方的模型與推理控制項選擇可用模型並調整推理強度, 較高的推理強度可改善複雜任務的結果, 但需要更長時間並使用更多 token, 先從預設強度開始, 需要更深入規劃或分析時再提高。</p>
+  <div class="code-block"><span class="cmt"># CLI 中切換模型</span>
+<span class="fn">codex</span> <span class="key">--model</span> <span class="str">gpt-5.6</span>
+
+<span class="cmt"># 非互動執行</span>
+<span class="fn">codex</span> <span class="kw">exec</span> <span class="key">-m</span> <span class="str">gpt-5.6</span> <span class="str">"Review the current changes"</span></div>
+
+  <h3>建議模型</h3>
+  <div class="chip-row" data-chipgroup="model">
+    <span class="chip active" data-group="model" data-val="sol" onclick="chipSelect('model','sol')">5.6 Sol</span>
+    <span class="chip" data-group="model" data-val="terra" onclick="chipSelect('model','terra')">5.6 Terra</span>
+    <span class="chip" data-group="model" data-val="luna" onclick="chipSelect('model','luna')">5.6 Luna</span>
+    <span class="chip" data-group="model" data-val="p55" onclick="chipSelect('model','p55')">5.5</span>
+    <span class="chip" data-group="model" data-val="spark" onclick="chipSelect('model','spark')">5.3 Codex Spark</span>
+  </div>
+  <div class="demo-panel visible" data-group="model" data-val="sol">
+    <p>旗艦級 GPT-5.6 模型, 在複雜程式撰寫, computer use, 研究與資安上能力最強。</p>
+    <div class="code-block"><span class="fn">codex</span> <span class="key">-m</span> <span class="str">gpt-5.6-sol</span></div>
+    <p>可用於: ChatGPT 桌面應用程式 / ChatGPT 網頁版 / Codex CLI / Codex IDE 擴充功能 / Codex cloud / ChatGPT Credits / API Access</p>
+  </div>
+  <div class="demo-panel" data-group="model" data-val="terra">
+    <p>均衡型 GPT-5.6 模型, 適合日常工作, 表現可媲美 GPT-5.5, 成本更低。</p>
+    <div class="code-block"><span class="fn">codex</span> <span class="key">-m</span> <span class="str">gpt-5.6-terra</span></div>
+    <p>可用於: ChatGPT 桌面應用程式 / ChatGPT 網頁版 / Codex CLI / Codex IDE 擴充功能 / Codex cloud / ChatGPT Credits / API Access</p>
+  </div>
+  <div class="demo-panel" data-group="model" data-val="luna">
+    <p>快速且經濟實惠的 GPT-5.6 模型, 在同系列中以最低成本提供強大能力。</p>
+    <div class="code-block"><span class="fn">codex</span> <span class="key">-m</span> <span class="str">gpt-5.6-luna</span></div>
+    <p>可用於: ChatGPT 桌面應用程式 / ChatGPT 網頁版 / Codex CLI / Codex IDE 擴充功能 / Codex cloud / ChatGPT Credits / API Access</p>
+  </div>
+  <div class="demo-panel" data-group="model" data-val="p55">
+    <p>上一代旗艦模型, 適合複雜程式撰寫, computer use, 知識工作與研究工作流程。</p>
+    <div class="code-block"><span class="fn">codex</span> <span class="key">-m</span> <span class="str">gpt-5.5</span></div>
+    <p>可用於: ChatGPT 桌面應用程式 / ChatGPT 網頁版 / Codex CLI / Codex IDE 擴充功能 / Codex cloud / ChatGPT Credits / API Access</p>
+  </div>
+  <div class="demo-panel" data-group="model" data-val="spark">
+    <p>僅支援文字的研究預覽模型, 針對接近即時的程式撰寫迭代最佳化, 提供給 ChatGPT Pro 使用者。</p>
+    <div class="code-block"><span class="fn">codex</span> <span class="key">-m</span> <span class="str">gpt-5.3-codex-spark</span></div>
+    <p>可用於: ChatGPT 桌面應用程式 / ChatGPT 網頁版 / Codex CLI / Codex IDE 擴充功能 / Codex cloud / ChatGPT Credits / API Access</p>
+  </div>
+
+  <h3>如何選擇 Sol, Terra 與 Luna</h3>
+  <div class="three-col">
+    <div class="col-card"><div class="col-card-title">Sol</div><p>適合複雜, 開放式的工作, 選擇 Sol 處理模糊, 困難或高價值任務, 需要額外分析, 判斷或潤飾, 例如複雜程式碼變更, 深入研究或精緻文件。</p></div>
+    <div class="col-card"><div class="col-card-title">Terra</div><p>務實的全能型模型, 適合需要強大推理與工具使用, 但不需要 Sol 完整深度的日常工作, 是過去使用 GPT-5.5 工作的自然起點。</p></div>
+    <div class="col-card"><div class="col-card-title">Luna</div><p>適合明確且可重複的任務, 例如擷取, 分類, 轉換與結構化摘要, 在你清楚知道好結果長什麼樣子時選擇 Luna。</p></div>
+  </div>
+
+  <h3>選擇推理強度</h3>
+  <div class="slider-box">
+    <input type="range" id="reasoningSlider" min="0" max="3" step="1" value="1" oninput="updateReasoning(this.value)" />
+    <div class="slider-labels"><span>Light / Low</span><span>Medium</span><span>High</span><span>Extra High</span></div>
+    <div class="slider-result" id="reasoningResult">Medium : <span>在速度與深度之間取得平衡, 適合需要更多規劃的任務。</span></div>
+  </div>
+
+  <h3>何時使用 Max 或 Ultra</h3>
+  <div class="two-col">
+    <div class="col-card"><div class="col-card-title">Max</div><p>讓所選模型花更多時間推理單一任務, 用於最困難的問題, 當深度比速度更重要時使用。若選項中沒有 Max, 需要先在應用程式設定中啟用。</p></div>
+    <div class="col-card"><div class="col-card-title">Ultra</div><p>使用子代理平行處理複雜任務的不同部分, 當工作可以拆解成有意義的區塊時選擇 Ultra, 多數任務不需要 Max 或 Ultra。</p></div>
+  </div>
+
+  <h3>其他模型</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">GPT-5.4</div><div class="desc">適合專業工作的旗艦模型, 具備強大的程式撰寫, 推理, 工具使用與代理式工作流程能力。</div></div>
+    <div class="field"><div class="name">GPT-5.4 mini</div><div class="desc">快速高效的迷你模型, 適合回應快速的程式撰寫任務與子代理。</div></div>
+  </div>
+  <div class="info-box"><span class="tag">已淘汰</span><p>當你以 ChatGPT 登入時, gpt-5.2 與 gpt-5.3-codex 在 Codex 中已淘汰, 若你的腳本, 設定檔或 codex exec --model 指令仍參照已淘汰的模型, 請更新為上述最新模型。</p></div>
+
+  <h3>設定本機預設模型</h3>
+  <p>ChatGPT 桌面應用程式, Codex CLI 與 IDE 擴充功能使用相同的 config.toml 設定檔, 加入 model 欄位即可指定模型。</p>
+  <div class="code-block"><span class="key">model</span> = <span class="str">"gpt-5.6"</span></div>
+  <p>目前無法變更 Codex cloud 任務的預設模型。</p>
+</section>
+
+<section id="pricing">
+  <h2>Pricing</h2>
+  <p>ChatGPT Work 與 Codex 已包含在你的 ChatGPT Free, Go, Plus, Pro, Business, Edu 或 Enterprise 方案中, 兩者共用相同的定價, 額度與使用限制。</p>
+
+  <h3>方案選項</h3>
+  <div class="chip-row" data-chipgroup="price">
+    <span class="chip active" data-group="price" data-val="free" onclick="chipSelect('price','free')">Free</span>
+    <span class="chip" data-group="price" data-val="go" onclick="chipSelect('price','go')">Go</span>
+    <span class="chip" data-group="price" data-val="plus" onclick="chipSelect('price','plus')">Plus</span>
+    <span class="chip" data-group="price" data-val="pro" onclick="chipSelect('price','pro')">Pro</span>
+    <span class="chip" data-group="price" data-val="apikey" onclick="chipSelect('price','apikey')">API Key</span>
+    <span class="chip" data-group="price" data-val="biz" onclick="chipSelect('price','biz')">Business</span>
+    <span class="chip" data-group="price" data-val="ent" onclick="chipSelect('price','ent')">Enterprise &amp; Edu</span>
+  </div>
+  <div class="demo-panel visible" data-group="price" data-val="free"><div class="response-box"><div class="response-field"><div class="rf-key">$0 / 月</div><div class="rf-val">探索 Codex 在快速程式撰寫任務上的能力。</div></div></div></div>
+  <div class="demo-panel" data-group="price" data-val="go"><div class="response-box"><div class="response-field"><div class="rf-key">$8 / 月</div><div class="rf-val">用於輕量的程式撰寫任務。</div></div></div></div>
+  <div class="demo-panel" data-group="price" data-val="plus"><div class="response-box">
+    <div class="response-field"><div class="rf-key">$20 / 月</div><div class="rf-val">每週支援幾次聚焦的程式撰寫工作階段。</div></div>
+    <div class="response-field"><div class="rf-key">涵蓋內容</div><div class="rf-val">網頁, CLI, IDE 擴充功能與 iOS 上的 Codex; 自動程式碼審查與 Slack 整合等雲端功能; GPT-5.6 模型家族含 Sol, Terra, Luna; Luna 提供更高使用上限; 可用 ChatGPT credits 彈性延伸額度。</div></div>
+  </div></div>
+  <div class="demo-panel" data-group="price" data-val="pro"><div class="response-box">
+    <div class="response-field"><div class="rf-key">$100 起 / 月</div><div class="rf-val">5 倍或 20 倍於 Plus 的速率限制。</div></div>
+    <div class="response-field"><div class="rf-key">額外內容</div><div class="rf-val">包含 Plus 所有內容, 並可使用研究預覽的 GPT-5.3-Codex-Spark; 5 倍或 20 倍於 Plus 的 Codex 用量。</div></div>
+  </div></div>
+  <div class="demo-panel" data-group="price" data-val="apikey"><div class="response-box">
+    <div class="response-field"><div class="rf-key">按用量計費</div><div class="rf-val">適合 CI 等共享環境中的自動化。</div></div>
+    <div class="response-field"><div class="rf-key">說明</div><div class="rf-val">可於 CLI, SDK 或 IDE 擴充功能中使用 Codex; 不含雲端功能如 GitHub 程式碼審查, Slack 等; 模型可用性依你金鑰可用的 API 模型而定; 只依 Codex 使用的 token 按 API 定價計費。</div></div>
+  </div></div>
+  <div class="demo-panel" data-group="price" data-val="biz"><div class="response-box">
+    <div class="response-field"><div class="rf-key">$20 / 使用者 / 月</div><div class="rf-val">2 人以上, 按年計費; 按月計費為每人每月 $25。</div></div>
+    <div class="response-field"><div class="rf-key">內容</div><div class="rf-val">跨桌面與行動應用程式使用 ChatGPT 與 Codex; 執行雲端任務更快的較大虛擬機器; 可用 ChatGPT credits 彈性延伸額度; 具 SAML SSO 與 MFA 的安全專屬工作區; 預設不以你的商業資料進行訓練。</div></div>
+  </div></div>
+  <div class="demo-panel" data-group="price" data-val="ent"><div class="response-box">
+    <div class="response-field"><div class="rf-key">為整個組織解鎖 Codex</div><div class="rf-val">包含 Business 所有內容, 並加上優先請求處理; SCIM, EKM, 使用者分析, 網域驗證與 RBAC; 透過 Compliance API 的稽核日誌與使用量監控; 資料保留與資料落地控制。</div></div>
+  </div></div>
+
+  <h3>邀請朋友與同事</h3>
+  <div class="info-box"><p>符合資格的使用者可從個人選單傳送 Codex 邀請, 在符合資格的個人方案選擇 "Invite a friend", 或在符合資格的 Business 工作區選擇 "Invite a coworker"。2026 年 6 月 11 日至 6 月 24 日期間, 符合資格的 Plus 與 Pro 使用者最多可邀請三位朋友, 當受邀者傳送第一則 Codex 訊息, 雙方都會取得可於 30 天內使用的額度重置。</p></div>
+
+  <h3>常見問題</h3>
+  <div class="chip-row" data-chipgroup="priceFaq">
+    <span class="chip active" data-group="priceFaq" data-val="q1" onclick="chipSelect('priceFaq','q1')">Sites 費用</span>
+    <span class="chip" data-group="priceFaq" data-val="q2" onclick="chipSelect('priceFaq','q2')">方案使用限制</span>
+    <span class="chip" data-group="priceFaq" data-val="q3" onclick="chipSelect('priceFaq','q3')">達到使用上限後</span>
+    <span class="chip" data-group="priceFaq" data-val="q4" onclick="chipSelect('priceFaq','q4')">影像產生如何計算</span>
+    <span class="chip" data-group="priceFaq" data-val="q5" onclick="chipSelect('priceFaq','q5')">哪裡查看用量</span>
+    <span class="chip" data-group="priceFaq" data-val="q6" onclick="chipSelect('priceFaq','q6')">Token 與額度</span>
+    <span class="chip" data-group="priceFaq" data-val="q7" onclick="chipSelect('priceFaq','q7')">Code Review 用量</span>
+    <span class="chip" data-group="priceFaq" data-val="q8" onclick="chipSelect('priceFaq','q8')">延長使用限制</span>
+  </div>
+  <div class="demo-panel visible" data-group="priceFaq" data-val="q1"><p>在公開 beta 期間, 符合資格的 ChatGPT 方案已包含 Sites。</p></div>
+  <div class="demo-panel" data-group="priceFaq" data-val="q2">
+    <p>可傳送的 Codex 訊息數量取決於使用的模型, 程式撰寫任務的規模與複雜度, 以及在本機或雲端執行。</p>
+    <div class="data-table-wrap"><table class="data-table">
+      <thead><tr><th>模型</th><th>Plus</th><th>Pro 5x</th><th>Pro 20x</th><th>Business</th><th>API Key</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-5.6 Sol</td><td>15-90</td><td>75-450</td><td>300-1800</td><td>15-90</td><td>按用量</td></tr>
+        <tr><td>GPT-5.6 Terra</td><td>20-110</td><td>100-550</td><td>400-2200</td><td>20-110</td><td>按用量</td></tr>
+        <tr><td>GPT-5.6 Luna</td><td>50-280</td><td>250-1400</td><td>1000-5600</td><td>50-280</td><td>按用量</td></tr>
+        <tr><td>GPT-5.5</td><td>15-80</td><td>75-400</td><td>300-1600</td><td>15-80</td><td>按用量</td></tr>
+        <tr><td>GPT-5.4</td><td>20-100</td><td>100-500</td><td>400-2000</td><td>20-100</td><td>按用量</td></tr>
+        <tr><td>GPT-5.4 mini</td><td>60-350</td><td>300-1750</td><td>1200-7000</td><td>60-350</td><td>按用量</td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin-top:10px">本機訊息與雲端任務共用同一個五小時區間, 可能另有每週上限。</p>
+  </div>
+  <div class="demo-panel" data-group="priceFaq" data-val="q3"><p>如果在一個進行中的回合期間達到使用上限, 代理仍可繼續完成該回合的工作, 但需受公平使用限制約束, 使用者可購買額外額度以繼續工作, 具彈性定價的 Business, Edu 與 Enterprise 方案可購買額外工作區額度。</p></div>
+  <div class="demo-panel" data-group="priceFaq" data-val="q4"><p>影像產生計入與本機訊息及雲端任務相同的 Codex 一般使用限制, 影像產生依影像品質與大小不同, 平均會比同類型且不含影像產生的回合快 3 到 5 倍消耗掉包含的額度上限。</p></div>
+  <div class="demo-panel" data-group="priceFaq" data-val="q5"><p>在 Codex 使用量儀表板可查看目前限制, 若想在互動式 Codex CLI 工作階段中查看剩餘限制, 使用 /status。</p></div>
+  <div class="demo-panel" data-group="priceFaq" data-val="q6">
+    <p>Token 是 ChatGPT 讀寫的小型資訊單位, 你的提示, 檔案, 對話歷程, 工具結果與 ChatGPT 的回應都會使用 token, credits 則把 token 使用量轉換成更簡單的追蹤與管理單位。</p>
+    <div class="data-table-wrap"><table class="data-table">
+      <thead><tr><th>模型</th><th>輸入 token</th><th>快取輸入 token</th><th>輸出 token</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-5.6 Sol</td><td>125</td><td>12.5</td><td>750</td></tr>
+        <tr><td>GPT-5.6 Terra</td><td>62.5</td><td>6.25</td><td>375</td></tr>
+        <tr><td>GPT-5.6 Luna</td><td>25</td><td>2.5</td><td>150</td></tr>
+        <tr><td>GPT-5.5</td><td>125</td><td>12.50</td><td>750</td></tr>
+        <tr><td>GPT-5.4</td><td>62.50</td><td>6.250</td><td>375</td></tr>
+        <tr><td>GPT-5.4 mini</td><td>18.75</td><td>1.875</td><td>113</td></tr>
+        <tr><td>GPT-Image-2, 影像</td><td>200</td><td>50</td><td>750</td></tr>
+        <tr><td>GPT-Image-2, 文字</td><td>125</td><td>31.25</td><td>250</td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin-top:10px">每 1M token 的額度, GPT-5.6 平均每則訊息消耗約 5 到 40 個額度。</p>
+  </div>
+  <div class="demo-panel" data-group="priceFaq" data-val="q7"><p>Code Review 的用量僅適用於 Codex 透過 GitHub 執行審查時, 例如在 pull request 中標記 @Codex 進行審查, 或在你的儲存庫啟用自動審查時。</p></div>
+  <div class="demo-panel" data-group="priceFaq" data-val="q8">
+    <div class="event-list">
+      <div class="event-item"><div class="event-name">精確的提示</div><div class="event-desc">用精確的指示控制提示大小。</div></div>
+      <div class="event-item"><div class="event-name">限制來源檔案</div><div class="event-desc">只提供相關檔案作為來源素材。</div></div>
+      <div class="event-item"><div class="event-name">配合需求輸出</div><div class="event-desc">讓輸出符合實際需要。</div></div>
+      <div class="event-item"><div class="event-name">縮減 AGENTS.md</div><div class="event-desc">減少 AGENTS.md 的篇幅。</div></div>
+      <div class="event-item"><div class="event-name">限制 MCP 伺服器</div><div class="event-desc">限制使用的 MCP 伺服器數量。</div></div>
+      <div class="event-item"><div class="event-name">切換較小模型</div><div class="event-desc">在例行任務中改用較小模型。</div></div>
+    </div>
+  </div>
+
+  <h3>功能可用性</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>功能</th><th>Plus</th><th>Pro</th><th>Business</th><th>Enterprise</th><th>API Key</th></tr></thead>
+      <tbody>
+        <tr><td>Codex cloud</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>ChatGPT Work on Web</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>ChatGPT desktop app</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Codex CLI</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>IDE extension</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>Codex SDK and scripting</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>Automation access tokens</td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>ChatGPT for Excel</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>GPT-5.6</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>Fast mode</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>Codex-Spark research preview</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Image generation</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Voice dictation</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Web search</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Local code review</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>Auto-review</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Sandboxing</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Scheduled tasks</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Built-in Git tools</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Repeatable actions</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Appshots</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>SSH remote</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Mobile remote</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Custom instructions</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>Skills</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Plugins</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Connectors</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>MCP</td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td></tr>
+        <tr><td>Subagents</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Cloud tasks</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Sites</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>GitHub delegation / PR reviews</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Slack / Linear integration</td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Workspace management</td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>RBAC and roles</td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>SCIM, EKM, domains</td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Retention and residency</td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+        <tr><td>Analytics / Compliance API</td><td><span class="no-dot"></span></td><td><span class="no-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="yes-dot"></span></td><td><span class="no-dot"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:10px">部分列出功能, 例如 Browser features, Computer Use, Record &amp; Replay, Chrome browser 與 Memories, 目前僅限於特定地區可用。</p>
+</section>
+
+<section id="glossary">
+  <h2>Glossary</h2>
+  <p>快速查閱 Codex 在應用程式, CLI, IDE 擴充功能, 雲端, SDK 與相關整合中使用的詞彙。</p>
+  <div class="search-box">
+    <input type="text" id="glossarySearch" placeholder="搜尋詞彙或定義..." oninput="filterGlossary()" />
+    <span class="glossary-count" id="glossaryCount"></span>
+  </div>
+  <div class="glossary-list" id="glossaryList">
+    <div class="glossary-card" data-search="agent 代理 codex agent 能對情境進行推理 使用工具並完成任務"><div class="term">Agent</div><div class="def">Codex 代理, 能對情境進行推理, 使用工具並完成任務。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud</div></div>
+    <div class="glossary-card" data-search="agents.md 儲存庫或使用者層級的指示檔案"><div class="term">AGENTS.md</div><div class="def">儲存庫或使用者層級的指示檔案, 提供 Codex 持續性的指引。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud</div></div>
+    <div class="glossary-card" data-search="analytics dashboard 管理員 採用情況 報表"><div class="term">Analytics dashboard</div><div class="def">管理員專用的工作區採用情況與 Codex 報表中心。</div><div class="applies">Enterprise</div></div>
+    <div class="glossary-card" data-search="api key sign-in openai api 金鑰 驗證"><div class="term">API key sign-in</div><div class="def">使用 OpenAI API 金鑰進行的驗證方式。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="approval policy 何時必須先詢問 規則"><div class="term">Approval policy</div><div class="def">決定 Codex 何時必須先詢問才能執行動作的規則。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="approval request 請求允許 受限動作"><div class="term">Approval request</div><div class="def">Codex 請求允許一項受限動作。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="apps configuration 相容表示連接器"><div class="term">Apps (configuration)</div><div class="def">Codex 設定與 app server 欄位中用來相容表示連接器的名稱。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="appshot 最上層應用程式視窗快照"><div class="term">Appshot</div><div class="def">將最上層的應用程式視窗傳送給 Work 或 Codex 任務的快照。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="auth cache 登入憑證 本機儲存"><div class="term">Auth cache</div><div class="def">本機儲存並由 Codex 重複使用的登入憑證。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="automatic approval review 自動審查"><div class="term">Automatic approval review</div><div class="def">對符合條件的核准請求進行以模型為基礎的自動審查。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="chat 一般 chatgpt 對話 quick chat"><div class="term">Chat</div><div class="def">一般的 ChatGPT 對話, 包含提示與回應, Quick Chat 開啟的正是同一種對話類型。</div><div class="applies">桌面應用程式 / Web / Mobile</div></div>
+    <div class="glossary-card" data-search="chatgpt desktop app 桌面應用程式"><div class="term">ChatGPT desktop app</div><div class="def">桌面應用程式, 內含 ChatGPT Work, Codex 與獨立的 Quick Chat 視窗, 涵蓋專案, 檔案預覽, 排程任務與開發者工具。</div><div class="applies">Desktop</div></div>
+    <div class="glossary-card" data-search="chatgpt sign-in 帳號 工作區權限"><div class="term">ChatGPT sign-in</div><div class="def">使用 ChatGPT 帳號與工作區權限進行的驗證方式。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud</div></div>
+    <div class="glossary-card" data-search="chronicle 螢幕內容 記憶"><div class="term">Chronicle</div><div class="def">選擇性加入的功能, 可從近期螢幕內容建立記憶。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="cloud 遠端運作模式"><div class="term">Cloud</div><div class="def">Codex 在 OpenAI 代管環境中遠端運作的模式。</div><div class="applies">桌面應用程式 / IDE / Web</div></div>
+    <div class="glossary-card" data-search="cloud environment 容器設定"><div class="term">Cloud environment</div><div class="def">用於 Codex 雲端任務的容器設定。</div><div class="applies">Cloud</div></div>
+    <div class="glossary-card" data-search="cloud task 遠端執行"><div class="term">Cloud task</div><div class="def">在雲端環境中遠端執行的 Codex 任務。</div><div class="applies">Cloud</div></div>
+    <div class="glossary-card" data-search="codex openai 程式撰寫代理"><div class="term">Codex</div><div class="def">OpenAI 用於軟體開發任務的程式撰寫代理。</div><div class="applies">桌面應用程式 / CLI / IDE / Web / Cloud / SDK</div></div>
+    <div class="glossary-card" data-search="codex app-server json-rpc 伺服器 嵌入執行緒"><div class="term">Codex app-server</div><div class="def">本機的 JSON-RPC 伺服器, 用於在自訂用戶端中嵌入 Codex 的執行緒, 回合, 核准, 歷程與串流事件。</div><div class="applies">桌面應用程式 / IDE / SDK</div></div>
+    <div class="glossary-card" data-search="codex cli 終端機用戶端"><div class="term">Codex CLI</div><div class="def">用於互動或以腳本方式執行 Codex 的終端機用戶端。</div><div class="applies">Terminal</div></div>
+    <div class="glossary-card" data-search="codex cloud openai 代管執行環境"><div class="term">Codex cloud</div><div class="def">OpenAI 代管的執行環境, Codex 可在其中遠端處理儲存庫任務。</div><div class="applies">Web / 桌面應用程式 / IDE</div></div>
+    <div class="glossary-card" data-search="codex exec 非互動方式 ci"><div class="term">codex exec</div><div class="def">用於從腳本或 CI 以非互動方式執行 Codex 的 CLI 指令。</div><div class="applies">CLI</div></div>
+    <div class="glossary-card" data-search="codex ide extension 編輯器 vs code jetbrains cursor windsurf"><div class="term">Codex IDE extension</div><div class="def">讓 Codex 整合進 VS Code, JetBrains, Cursor 與 Windsurf 等編輯器的擴充功能。</div><div class="applies">IDE</div></div>
+    <div class="glossary-card" data-search="codex sdk 程式化介面"><div class="term">Codex SDK</div><div class="def">用於建置 Codex 驅動工作流程或整合的程式化介面。</div><div class="applies">SDK</div></div>
+    <div class="glossary-card" data-search="codex-managed worktree 暫時性 建立並管理"><div class="term">Codex-managed worktree</div><div class="def">Codex 為某項任務建立並管理的暫時性 worktree。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="compaction 摘要化 較舊情境內容"><div class="term">Compaction</div><div class="def">摘要化較舊的情境內容, 讓長時間執行的工作得以延續。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud</div></div>
+    <div class="glossary-card" data-search="compliance api 匯出 稽核中繼資料"><div class="term">Compliance API</div><div class="def">用於匯出受支援的 ChatGPT 工作區紀錄與稽核中繼資料的 API。</div><div class="applies">Enterprise</div></div>
+    <div class="glossary-card" data-search="computer use 桌面功能 互動"><div class="term">Computer Use</div><div class="def">桌面功能, 讓 ChatGPT 透過使用者介面與其他應用程式互動。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="computer use in the browser 內建瀏覽器"><div class="term">Computer Use in the browser</div><div class="def">讓 ChatGPT 直接操作內建瀏覽器的能力。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="config.toml 本機設定檔案"><div class="term">config.toml</div><div class="def">本機的 Codex 設定檔案。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="connected host 電腦 開發環境 remote"><div class="term">Connected host</div><div class="def">提供檔案, 工具與 shell 存取權的電腦或開發環境, 供透過 Remote 開啟的任務使用。</div><div class="applies">桌面應用程式 / Mobile</div></div>
+    <div class="glossary-card" data-search="connector plugin 外部服務"><div class="term">Connector</div><div class="def">讓 Work 或 Codex 透過 plugin 存取外部服務的連接器。</div><div class="applies">桌面應用程式 / Web</div></div>
+    <div class="glossary-card" data-search="container cache 雲端容器狀態 加速"><div class="term">Container cache</div><div class="def">為加速未來任務而保留的雲端容器狀態。</div><div class="applies">Cloud</div></div>
+    <div class="glossary-card" data-search="context 工作時可使用的資訊"><div class="term">Context</div><div class="def">Codex 工作時可使用的資訊, 例如檔案, 先前訊息, 工具輸出與指示。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud / SDK</div></div>
+    <div class="glossary-card" data-search="context window 最大資訊量"><div class="term">Context window</div><div class="def">模型一次可考量的最大資訊量。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud / SDK</div></div>
+    <div class="glossary-card" data-search="custom agent 使用者定義角色"><div class="term">Custom agent</div><div class="def">具有自訂指示與設定的使用者定義代理角色。</div><div class="applies">桌面應用程式 / CLI</div></div>
+    <div class="glossary-card" data-search="deny-read rule 防止讀取敏感路徑"><div class="term">Deny-read rule</div><div class="def">防止 Codex 讀取敏感路徑或符合特定樣式路徑的檔案系統權限規則。</div><div class="applies">桌面應用程式 / CLI / IDE / Enterprise</div></div>
+    <div class="glossary-card" data-search="diff git 檔案變更"><div class="term">Diff</div><div class="def">顯示供檢查, 註解, 暫存或還原用的一組 Git 檔案變更。</div><div class="applies">桌面應用程式 / Git / Review</div></div>
+    <div class="glossary-card" data-search="domain allowlist 網域清單 可連線"><div class="term">Domain allowlist</div><div class="def">當代理的網際網路存取被啟用時, Codex 雲端可連線的網域清單。</div><div class="applies">Cloud</div></div>
+    <div class="glossary-card" data-search="environment local worktree 建立方式"><div class="term">Environment (local)</div><div class="def">桌面應用程式設定, 告知 Codex 如何為某專案建立 worktree。</div><div class="applies">桌面應用程式 / Worktree</div></div>
+    <div class="glossary-card" data-search="environment variable 執行時期設定值"><div class="term">Environment variable</div><div class="def">任務執行期間可用的執行時期設定值。</div><div class="applies">Cloud / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="ephemeral session 非互動執行 不儲存"><div class="term">Ephemeral session</div><div class="def">完成後略過儲存工作階段狀態的非互動執行。</div><div class="applies">CLI</div></div>
+    <div class="glossary-card" data-search="fast mode 較高額度成本 更快回應"><div class="term">Fast mode</div><div class="def">讓支援的模型以較高額度成本更快回應的速度設定。</div><div class="applies">CLI / IDE</div></div>
+    <div class="glossary-card" data-search="filesystem permission 路徑讀寫存取權"><div class="term">Filesystem permission</div><div class="def">授予或拒絕路徑讀寫存取權的權限設定檔規則。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="finding 排程任務發現的顯著結果"><div class="term">Finding</div><div class="def">排程任務所發現的顯著結果或問題。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="full access 沒有沙箱限制"><div class="term">Full access</div><div class="def">Codex 在沒有一般沙箱限制下執行的模式。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="git worktree 第二個簽出副本 平行分支"><div class="term">Git worktree</div><div class="def">同一個儲存庫的第二個簽出副本, 用於平行分支工作。</div><div class="applies">桌面應用程式 / Git</div></div>
+    <div class="glossary-card" data-search="handoff local worktree 搬移任務"><div class="term">Handoff</div><div class="def">在 Local 與 Worktree 之間搬移任務。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="heartbeat 週期性排程工作"><div class="term">Heartbeat</div><div class="def">讓 ChatGPT 回到同一項任務的週期性排程工作簡稱。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="hook 生命週期處理器"><div class="term">Hook</div><div class="def">在 Codex 事件符合條件時執行的生命週期處理器, 例如工具使用, 權限請求或回合結束時。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="hook event 生命週期時間點"><div class="term">Hook event</div><div class="def">設定的 hook 處理器可以執行的生命週期時間點。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="hunk diff 連續區段"><div class="term">Hunk</div><div class="def">diff 中可獨立暫存, 取消暫存或還原的連續區段。</div><div class="applies">桌面應用程式 / Git / Review</div></div>
+    <div class="glossary-card" data-search="inline comment 附加在 diff 上"><div class="term">Inline comment</div><div class="def">附加在 diff 上的特定行意見回饋。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="live web search 即時網路查詢"><div class="term">Live web search</div><div class="def">針對目前資訊的即時網路查詢。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="local 使用者電腦上運作"><div class="term">Local</div><div class="def">Codex 在使用者電腦上運作的模式。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="local task 使用者機器上執行"><div class="term">Local task</div><div class="def">在使用者機器上執行的 Work 或 Codex 任務。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="maintenance script 快取的雲端容器恢復"><div class="term">Maintenance script</div><div class="def">快取的雲端容器恢復時執行的選擇性腳本。</div><div class="applies">Cloud</div></div>
+    <div class="glossary-card" data-search="managed configuration 組織控管預設值"><div class="term">Managed configuration</div><div class="def">組織控管的 Codex 預設值與限制。</div><div class="applies">Enterprise</div></div>
+    <div class="glossary-card" data-search="mcp model context protocol 標準"><div class="term">MCP</div><div class="def">Model Context Protocol, 用於將 Codex 連接至外部工具與情境的標準。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="mcp resource 可讀情境內容"><div class="term">MCP resource</div><div class="def">由 MCP 伺服器公開, 供 Codex 檢視的可讀情境內容。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="mcp server 外部工具或情境提供者"><div class="term">MCP server</div><div class="def">透過 MCP 公開的外部工具或情境提供者。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="mcp tool 任務中可呼叫的動作"><div class="term">MCP tool</div><div class="def">MCP 伺服器公開, 供 Codex 於任務中呼叫的動作。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="mdm 行動裝置管理工具"><div class="term">MDM</div><div class="def">用於發佈裝置設定檔與受管理 Codex 設定的行動裝置管理工具。</div><div class="applies">Enterprise</div></div>
+    <div class="glossary-card" data-search="memories 跨工作階段 本機儲存"><div class="term">Memories</div><div class="def">Codex 可跨工作階段重複使用的本機儲存情境內容。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="model 推理與工具操作"><div class="term">Model</div><div class="def">Codex 用於推理與工具操作的 AI 模型。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud / SDK</div></div>
+    <div class="glossary-card" data-search="network access 存取網際網路權限"><div class="term">Network access</div><div class="def">供指令或環境存取網際網路的權限。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud</div></div>
+    <div class="glossary-card" data-search="network policy 網域式允許與拒絕規則"><div class="term">Network policy</div><div class="def">限制沙箱化對外網路流量的網域式允許與拒絕規則。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="non-interactive mode 腳本或 ci 執行"><div class="term">Non-interactive mode</div><div class="def">用於從腳本或 CI 執行 Codex 的 CLI 模式。</div><div class="applies">CLI</div></div>
+    <div class="glossary-card" data-search="output schema json schema codex exec"><div class="term">Output schema</div><div class="def">傳遞給 codex exec 以限制最終回應格式的 JSON Schema。</div><div class="applies">CLI</div></div>
+    <div class="glossary-card" data-search="permanent worktree 長期保留"><div class="term">Permanent worktree</div><div class="def">作為獨立專案長期保留的 worktree。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="permission profile 最小權限具名政策"><div class="term">Permission profile</div><div class="def">結合檔案系統與網路規則, 用於本機指令執行的最小權限具名政策。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="plan 提出或追蹤的步驟"><div class="term">Plan</div><div class="def">Codex 針對完成任務所提出或追蹤的步驟。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud</div></div>
+    <div class="glossary-card" data-search="plugin 可安裝套件 skills 工具 整合"><div class="term">Plugin</div><div class="def">可散布 skills, 工具與整合的可安裝套件。</div><div class="applies">桌面應用程式 / Web / CLI</div></div>
+    <div class="glossary-card" data-search="plugin manifest 中繼資料檔案"><div class="term">Plugin manifest</div><div class="def">識別 plugin 並指向所包含 skills, apps, MCP 伺服器, hooks 與中繼資料的檔案。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="prefix rule 指令前綴規則"><div class="term">Prefix rule</div><div class="def">允許, 提示或禁止符合特定前綴指令的指令規則樣式。</div><div class="applies">桌面應用程式 / CLI / IDE / Enterprise</div></div>
+    <div class="glossary-card" data-search="profile 具名設定預設集"><div class="term">Profile</div><div class="def">Codex 的具名設定預設集。</div><div class="applies">CLI / IDE</div></div>
+    <div class="glossary-card" data-search="progressive disclosure 只在需要時才載入 skill 細節"><div class="term">Progressive disclosure</div><div class="def">只在需要時才載入 skill 細節, 以保留情境空間。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="project 相關對話或任務 共享來源"><div class="term">Project</div><div class="def">一組相關的對話或任務與共享來源, 或用於檔案工作的本機資料夾。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="prompt 問題 指示或目標"><div class="term">Prompt</div><div class="def">傳送給 ChatGPT 或 Codex 的問題, 指示或目標。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud / SDK</div></div>
+    <div class="glossary-card" data-search="pull request review 對變更的審查"><div class="term">Pull request review</div><div class="def">Codex 對 pull request 變更的審查或意見回饋。</div><div class="applies">桌面應用程式 / CLI / GitHub</div></div>
+    <div class="glossary-card" data-search="rbac 角色型存取控制"><div class="term">RBAC</div><div class="def">工作區權限的角色型存取控制。</div><div class="applies">Enterprise</div></div>
+    <div class="glossary-card" data-search="read-only mode 可檢視但未經核准無法修改"><div class="term">Read-only mode</div><div class="def">Codex 可檢視但未經核准無法修改的模式。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="reasoning effort 推理額度"><div class="term">Reasoning effort</div><div class="def">控制模型使用多少推理額度的設定。</div><div class="applies">桌面應用程式 / CLI / IDE / SDK</div></div>
+    <div class="glossary-card" data-search="remote connection 已連線主機 存取任務"><div class="term">Remote connection</div><div class="def">透過已連線主機, 讓你在其他裝置上存取 Work 或 Codex 任務的連線。</div><div class="applies">桌面應用程式 / Mobile</div></div>
+    <div class="glossary-card" data-search="requirements.toml 管理員強制要求檔案"><div class="term">requirements.toml</div><div class="def">用於受管理 Codex 設定的管理員強制要求檔案。</div><div class="applies">Enterprise</div></div>
+    <div class="glossary-card" data-search="review pane 檢視 diff 註解 git 變更"><div class="term">Review pane</div><div class="def">桌面應用程式中用於檢視 diff, 註解與 Git 變更的畫面。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="rules 允許提示或拒絕指令前綴"><div class="term">Rules</div><div class="def">允許, 提示或拒絕指令前綴或權限例外的政策。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="sandbox 強制邊界"><div class="term">Sandbox</div><div class="def">限制 Codex 指令可存取或修改內容的強制邊界。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="sandbox mode 檔案系統與網路限制設定"><div class="term">Sandbox mode</div><div class="def">定義 Codex 檔案系統與網路限制的設定。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="sandbox preset sdk 簡寫"><div class="term">Sandbox preset</div><div class="def">SDK 中用於常見沙箱政策, 例如唯讀, workspace write, full access 的簡寫。</div><div class="applies">SDK</div></div>
+    <div class="glossary-card" data-search="schedule 排程任務時間規則"><div class="term">Schedule</div><div class="def">排程任務的時間規則。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="scheduled run 一次執行 回報發現"><div class="term">Scheduled run</div><div class="def">排程任務的一次執行, 可能回報發現或自我封存。</div><div class="applies">桌面應用程式 / Web</div></div>
+    <div class="glossary-card" data-search="scheduled task chatgpt 中的排程"><div class="term">Scheduled task</div><div class="def">ChatGPT 中的排程或週期性任務。</div><div class="applies">桌面應用程式 / Web</div></div>
+    <div class="glossary-card" data-search="scheduled work 從既有任務排程的工作"><div class="term">Scheduled work</div><div class="def">從既有任務排程的工作, 每次排程執行都會回到同一個任務情境。</div><div class="applies">桌面應用程式 / Web</div></div>
+    <div class="glossary-card" data-search="secret 加密值 代理階段前移除"><div class="term">Secret</div><div class="def">提供給設定腳本使用, 並在代理階段前移除的加密值。</div><div class="applies">Cloud</div></div>
+    <div class="glossary-card" data-search="setup script 代理啟動前執行"><div class="term">Setup script</div><div class="def">在代理啟動前執行, 用於安裝相依套件或準備工具的腳本。</div><div class="applies">桌面應用程式 worktrees</div></div>
+    <div class="glossary-card" data-search="skill 可重複使用工作流程套件"><div class="term">Skill</div><div class="def">具有指示與選擇性腳本或參考資料的可重複使用工作流程套件。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="skill invocation 明確或隱含啟用"><div class="term">Skill invocation</div><div class="def">skill 的明確或隱含啟用。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="slash command 斜線開頭 codex cli"><div class="term">Slash command</div><div class="def">以斜線開頭輸入, 用於控制或檢視 Codex CLI 工作階段的指令。</div><div class="applies">CLI</div></div>
+    <div class="glossary-card" data-search="standalone scheduled task 啟動新任務 triage"><div class="term">Standalone scheduled task</div><div class="def">每次執行都會啟動新任務, 並在 Triage 中回報發現的排程任務。</div><div class="applies">桌面應用程式 / Web</div></div>
+    <div class="glossary-card" data-search="stdio mcp server 本機以行程方式啟動"><div class="term">STDIO MCP server</div><div class="def">由設定的指令與參數在本機以行程方式啟動的 MCP 伺服器。</div><div class="applies">CLI / IDE</div></div>
+    <div class="glossary-card" data-search="streamable http mcp server http 連接 oauth"><div class="term">Streamable HTTP MCP server</div><div class="def">透過 HTTP 連接, 可選擇搭配 bearer token 或 OAuth 驗證的 MCP 伺服器。</div><div class="applies">CLI / IDE</div></div>
+    <div class="glossary-card" data-search="subagent 專門子代理"><div class="term">Subagent</div><div class="def">為處理任務的一部分而衍生的專門子代理。</div><div class="applies">桌面應用程式 / CLI</div></div>
+    <div class="glossary-card" data-search="subagent workflow 平行執行受委派代理"><div class="term">Subagent workflow</div><div class="def">Codex 平行執行受委派代理並整合其結果的工作流程。</div><div class="applies">桌面應用程式 / CLI</div></div>
+    <div class="glossary-card" data-search="task 持久性活動單位"><div class="term">Task</div><div class="def">包含情境, 訊息, 結果與動作的持久性 Work 或 Codex 活動單位。</div><div class="applies">桌面應用程式 / Web / Mobile / CLI / IDE / Cloud</div></div>
+    <div class="glossary-card" data-search="thread 技術性對話物件"><div class="term">Thread</div><div class="def">App server API 與協定欄位所公開的技術性對話物件。</div><div class="applies">App-server / SDK</div></div>
+    <div class="glossary-card" data-search="thread fork 從既有執行緒歷程分支"><div class="term">Thread fork</div><div class="def">從既有執行緒的儲存歷程分支出的新執行緒。</div><div class="applies">App-server / SDK</div></div>
+    <div class="glossary-card" data-search="turn 一次交流 使用者提示加回應"><div class="term">Turn</div><div class="def">對話或任務中的一次交流, 通常是使用者提示加上代理的回應與動作。</div><div class="applies">桌面應用程式 / CLI / IDE / Cloud / SDK</div></div>
+    <div class="glossary-card" data-search="universal image 預設雲端容器映像"><div class="term">Universal image</div><div class="def">預先安裝常見工具的預設 Codex 雲端容器映像。</div><div class="applies">Cloud</div></div>
+    <div class="glossary-card" data-search="web search cache 預先索引搜尋結果"><div class="term">Web search cache</div><div class="def">Codex 可在不即時瀏覽的情況下使用的預先索引搜尋結果。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+    <div class="glossary-card" data-search="work chatgpt work 研究分析建立文件的代理"><div class="term">Work</div><div class="def">ChatGPT Work 是用於研究, 分析與建立文件, 簡報, 試算表及其他成品的代理。</div><div class="applies">桌面應用程式 / Web</div></div>
+    <div class="glossary-card" data-search="worktree 獨立 git worktree 隔離變更"><div class="term">Worktree</div><div class="def">Codex 在獨立 Git worktree 中隔離變更的模式。</div><div class="applies">桌面應用程式</div></div>
+    <div class="glossary-card" data-search="writable roots 被允許修改的目錄"><div class="term">Writable roots</div><div class="def">Codex 被允許修改的目錄。</div><div class="applies">桌面應用程式 / CLI / IDE</div></div>
+  </div>
+</section>
+
+<section id="desktop-app">
+  <h2>ChatGPT Desktop App</h2>
+  <p>你複雜工作的指揮中心, 平行執行專案, 處理檔案, 使用你的電腦, 並在同一個桌面工作區中維持長時間工作的進度。</p>
+
+  <h3>Artifacts</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">01 · 掌握每項任務</div><div class="desc">在專案與長時間執行的工作之間移動, 不遺失情境內容。</div></div>
+    <div class="field"><div class="name">02 · 建立並檢視真實產出</div><div class="desc">在同一個工作區打開文件, 試算表, 圖片與其他檔案。</div></div>
+    <div class="field"><div class="name">03 · 跨工具工作</div><div class="desc">使用瀏覽器, 桌面應用程式與外掛, 或從任務中排程工作。</div></div>
+  </div>
+
+  <h3>快速入門</h3>
+  <div class="stage-tabs" data-group="dqs">
+    <div class="stage-tab active" data-group="dqs" data-step="0" onclick="goStep('dqs',0)">1 · 安裝</div>
+    <div class="stage-tab" data-group="dqs" data-step="1" onclick="goStep('dqs',1)">2 · 登入</div>
+    <div class="stage-tab" data-group="dqs" data-step="2" onclick="goStep('dqs',2)">3 · 選擇工作位置</div>
+    <div class="stage-tab" data-group="dqs" data-step="3" onclick="goStep('dqs',3)">4 · 送出訊息</div>
+  </div>
+  <div class="demo-panel visible" data-group="dqs" data-step="0"><p>下載適用於 Windows 或 macOS 的 ChatGPT。</p></div>
+  <div class="demo-panel" data-group="dqs" data-step="1"><p>打開應用程式, 以你的 ChatGPT 帳號登入。</p></div>
+  <div class="demo-panel" data-group="dqs" data-step="2"><p>開始一項任務, 建立專案, 或開啟一個資料夾, ChatGPT 可使用你所選位置中的檔案與情境。</p></div>
+  <div class="demo-panel" data-group="dqs" data-step="3"><p>為任務選擇 Chat, Work 或 Codex, 描述你想要的結果, 並加入所需的任何檔案或情境內容。</p></div>
+  <span class="step-indicator" data-indicator="dqs">步驟 1 / 4</span>
+
+  <h3>應用程式能做什麼</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">01 · 聚焦的工作簡報</div><div class="desc">檢視你行事曆, 訊息, 電子郵件與專案情境中的優先事項。</div></div>
+    <div class="field"><div class="name">02 · 分析檔案並建立互動視覺化</div><div class="desc">把資料匯出轉換成可檢視並分享的發現。</div></div>
+    <div class="field"><div class="name">03 · 把零散情境變成完整 PRD</div><div class="desc">整合來源, 加以綜合, 建立可用的文件。</div></div>
+    <div class="field"><div class="name">04 · 清理並準備混亂資料</div><div class="desc">把雜亂的 CSV 或試算表轉換成乾淨的副本, 不更動原始檔案。</div></div>
+    <div class="field"><div class="name">05 · 把回饋轉換成行動</div><div class="desc">綜合來自多個來源的回饋, 產出可審閱的成品。</div></div>
+  </div>
+
+  <h3>適合使用桌面應用程式的情境</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">協調多個專案</div><div class="event-desc">讓平行進行的工作保持可見, 並能快速在任務間切換。</div></div>
+    <div class="event-item"><div class="event-name">建立並審查檔案</div><div class="event-desc">建置完整成品並在不離開 ChatGPT 的情況下檢視。</div></div>
+    <div class="event-item"><div class="event-name">使用瀏覽器與電腦</div><div class="event-desc">讓 ChatGPT 存取任務所需的工具。</div></div>
+    <div class="event-item"><div class="event-name">排程重複性工作</div><div class="event-desc">建立獨立排程任務, 或從既有任務排程工作。</div></div>
+  </div>
+</section>
+
+<section id="web">
+  <h2>ChatGPT on the web</h2>
+  <p>在瀏覽器中研究, 分析並建立成果, 提出問題, 研究主題, 或描述多步驟任務, ChatGPT 可使用你的檔案與已連接工具建立文件, 簡報, 試算表等產出。</p>
+
+  <h3>網頁版快速入門</h3>
+  <div class="stage-tabs" data-group="wqs">
+    <div class="stage-tab active" data-group="wqs" data-step="0" onclick="goStep('wqs',0)">1 · 登入</div>
+    <div class="stage-tab" data-group="wqs" data-step="1" onclick="goStep('wqs',1)">2 · 選擇 Work</div>
+    <div class="stage-tab" data-group="wqs" data-step="2" onclick="goStep('wqs',2)">3 · 開始對話或選專案</div>
+    <div class="stage-tab" data-group="wqs" data-step="3" onclick="goStep('wqs',3)">4 · 送出訊息</div>
+  </div>
+  <div class="demo-panel visible" data-group="wqs" data-step="0"><p>前往 chatgpt.com, 以你的 ChatGPT 帳號登入。</p></div>
+  <div class="demo-panel" data-group="wqs" data-step="1"><p>選擇 Work 進行研究, 分析, 文件, 試算表, 簡報, Sites 與其他多步驟任務, 若只是要一個答案或對話, 選擇 Chat。</p></div>
+  <div class="demo-panel" data-group="wqs" data-step="2"><p>單次任務使用對話, 若工作會持續進行, 使用專案把相關對話, 檔案與指示放在一起。</p></div>
+  <div class="demo-panel" data-group="wqs" data-step="3"><p>描述你想要的結果, 並加入 ChatGPT 需要的任何檔案或情境內容, 之後可透過後續訊息修正結果。</p></div>
+  <span class="step-indicator" data-indicator="wqs">步驟 1 / 4</span>
+
+  <h3>三項核心能力</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">01 · 選擇 Chat 或 Work</div><div class="desc">用 Chat 探索問題或發展想法, 有明確結果並想讓 ChatGPT 規劃, 蒐集情境並推進較大任務時切換到 Work。</div></div>
+    <div class="field"><div class="name">02 · 選擇合適的模型與推理強度</div><div class="desc">從輸入框選擇模型與推理層級, 為複雜規劃, 分析或多代理執行提高強度。</div></div>
+    <div class="field"><div class="name">03 · 帶入工具與可重複工作流程</div><div class="desc">安裝外掛連接 Google Drive, GitHub 或 Slack 等服務, 加入 skills 讓 ChatGPT 遵循特定工作流程。</div></div>
+  </div>
+
+  <h3>適合在網頁版使用 ChatGPT 的情境</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">需要完成多步驟任務</div><div class="event-desc">Work 可以規劃任務, 蒐集情境, 並持續推進多個步驟朝向明確結果。</div></div>
+    <div class="event-item"><div class="event-name">工作需要更深的推理</div><div class="event-desc">為複雜規劃與分析選擇較強模型或提高推理強度。</div></div>
+    <div class="event-item"><div class="event-name">工作依賴你的工具與情境</div><div class="event-desc">使用外掛與 skills 帶入已連接來源, 採取行動並遵循可重複工作流程。</div></div>
+    <div class="event-item"><div class="event-name">需要可審閱分享的檔案</div><div class="event-desc">把來源素材轉換成文件, 簡報, 試算表或 PDF, 再透過回饋精修。</div></div>
+  </div>
+</section>
+
+<section id="cli">
+  <h2>Codex CLI</h2>
+  <p>從終端機檢視, 編輯並執行程式碼, 不需要離開終端機就能檢視程式碼, 進行變更, 執行指令, 並自動化重複性工作。</p>
+
+  <h3>快速入門</h3>
+  <div class="stage-tabs" data-group="cliqs">
+    <div class="stage-tab active" data-group="cliqs" data-step="0" onclick="goStep('cliqs',0)">1 · 安裝</div>
+    <div class="stage-tab" data-group="cliqs" data-step="1" onclick="goStep('cliqs',1)">2 · 執行並登入</div>
+    <div class="stage-tab" data-group="cliqs" data-step="2" onclick="goStep('cliqs',2)">3 · 開始第一項任務</div>
+  </div>
+  <div class="demo-panel visible" data-group="cliqs" data-step="0">
+    <p>macOS 或 Linux, 使用獨立安裝程式：</p>
+    <div class="code-block"><span class="fn">curl</span> <span class="key">-fsSL</span> <span class="str">https://chatgpt.com/codex/install.sh</span> | <span class="fn">sh</span></div>
+  </div>
+  <div class="demo-panel" data-group="cliqs" data-step="1"><p>在專案目錄中執行 <span style="font-family:monospace">codex</span>, 首次執行時選擇 Sign in with ChatGPT 或其他可用的登入方式。</p></div>
+  <div class="demo-panel" data-group="cliqs" data-step="2">
+    <p>描述你想完成的事, 例如請 Codex 解釋專案, 進行聚焦的變更, 或協助除錯。</p>
+    <div class="code-block"><span class="str">Tell me about this project</span></div>
+    <p style="margin-top:10px">建議在任務前後建立 Git checkpoint, 以便還原變更。</p>
+  </div>
+  <span class="step-indicator" data-indicator="cliqs">步驟 1 / 3</span>
+
+  <h3>Codex CLI 能做什麼</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">01 · 在終端機保持迴圈</div><div class="event-desc">在儲存庫中啟動 Codex 探索陌生程式碼, 規劃變更, 編輯檔案並執行本機開發工具。</div></div>
+    <div class="event-item"><div class="event-name">02 · 使用 skills 與 plugins</div><div class="event-desc">把重複性指示封裝為 skills, 再加入 plugins 連接團隊的工具與資料。</div></div>
+    <div class="event-item"><div class="event-name">03 · 送出前先審查變更</div><div class="event-desc">針對未提交變更, 特定 commit 或基準分支執行專屬審查, Codex 回報優先排序的發現, 不會修改你的工作目錄。</div></div>
+  </div>
+
+  <h3>圍繞 Codex 建立終端機工作流程</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">codex resume</div><div class="desc">回到已儲存的工作階段。</div></div>
+    <div class="field"><div class="name">codex --image</div><div class="desc">把視覺情境帶入提示。</div></div>
+    <div class="field"><div class="name">subagents</div><div class="desc">拆解較大的調查工作。</div></div>
+    <div class="field"><div class="name">codex --search</div><div class="desc">搜尋目前的情境內容。</div></div>
+    <div class="field"><div class="name">codex cloud</div><div class="desc">把工作搬到 Codex cloud。</div></div>
+    <div class="field"><div class="name">codex mcp</div><div class="desc">以 MCP 連接外部工具。</div></div>
+    <div class="field"><div class="name">/permissions</div><div class="desc">為每次執行設定邊界。</div></div>
+    <div class="field"><div class="name">codex completion</div><div class="desc">讓 Codex 貼合你的終端機。</div></div>
+  </div>
+</section>
+
+<section id="ide">
+  <h2>Codex IDE Extension</h2>
+  <p>在編輯器中已有的情境旁工作, 把打開的檔案與選取內容帶入提示, 就地審查編輯內容, 並在不打斷流程的情況下交接較長的工作。</p>
+
+  <h3>程式碼範例</h3>
+  <div class="code-block"><span class="kw">import</span> { wait } <span class="kw">from</span> <span class="str">'./backoff'</span>;
+
+<span class="kw">export async function</span> <span class="fn">retryOperation</span>&lt;T&gt;(
+  fn: () =&gt; <span class="key">Promise</span>&lt;T&gt;,
+  retries = <span class="str">3</span>,
+): <span class="key">Promise</span>&lt;T&gt; {
+  <span class="kw">let</span> attempt = <span class="str">0</span>;
+  <span class="kw">let</span> lastError: unknown;
+
+  <span class="kw">while</span> (attempt &lt;= retries) {
+    <span class="kw">try</span> {
+      <span class="kw">return await</span> fn();
+    } <span class="kw">catch</span> (error) {
+      lastError = error;
+      <span class="kw">if</span> (attempt &gt;= retries) <span class="kw">break</span>;
+      <span class="kw">await</span> <span class="fn">wait</span>(<span class="str">200</span> * <span class="str">2</span> ** attempt);
+      attempt++;
+    }
+  }
+  <span class="kw">throw</span> lastError;
+}</div>
+  <div class="code-block"><span class="kw">import</span> { retryOperation } <span class="kw">from</span> <span class="str">'./retry'</span>;
+
+<span class="fn">describe</span>(<span class="str">'retryOperation'</span>, () =&gt; {
+  <span class="fn">it</span>(<span class="str">'stops after max retries'</span>, <span class="kw">async</span> () =&gt; {
+    <span class="kw">const</span> operation = vi.fn().mockRejectedValue(<span class="str">'nope'</span>);
+
+    <span class="kw">await</span> <span class="fn">expect</span>(retryOperation(operation, <span class="str">2</span>))
+      .rejects.toBe(<span class="str">'nope'</span>);
+
+    <span class="fn">expect</span>(operation).toHaveBeenCalledTimes(<span class="str">3</span>);
+  });
+});</div>
+  <div class="code-block"><span class="kw">import</span> { setTimeout <span class="kw">as</span> wait } <span class="kw">from</span> <span class="str">'timers/promises'</span>;
+
+<span class="kw">export function</span> <span class="fn">nextDelay</span>(baseDelay: number, attempt: number) {
+  <span class="kw">const</span> jitter = Math.random() * <span class="str">0.2</span> + <span class="str">0.9</span>;
+  <span class="kw">return</span> baseDelay * <span class="str">2</span> ** attempt * jitter;
+}
+
+<span class="kw">export</span> { wait };</div>
+
+  <h3>三項核心能力</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">01 · 使用已開啟的情境</div><div class="desc">直接從輸入框參照打開的檔案, 選取內容與近期執行緒, Codex 從你正在檢視的程式碼開始, 減少重新描述問題的時間。</div></div>
+    <div class="field"><div class="name">02 · 在程式碼旁審查變更</div><div class="desc">檢視簡潔摘要與變更行內容, 不需要額外的導覽面板, 檢視兩個受影響的檔案, 保留你要的編輯, 並在同一畫面要求後續調整。</div></div>
+    <div class="field"><div class="name">03 · 工作變大時委派出去</div><div class="desc">本機工作適合快速手動迭代, 或連接 Codex web 委派較長的任務, 回到審查時執行緒仍然可用。</div></div>
+  </div>
+
+  <h3>快速入門</h3>
+  <div class="stage-tabs" data-group="ideqs">
+    <div class="stage-tab active" data-group="ideqs" data-step="0" onclick="goStep('ideqs',0)">1 · 安裝或啟用</div>
+    <div class="stage-tab" data-group="ideqs" data-step="1" onclick="goStep('ideqs',1)">2 · 開啟 Codex</div>
+    <div class="stage-tab" data-group="ideqs" data-step="2" onclick="goStep('ideqs',2)">3 · 開始任務</div>
+  </div>
+  <div class="demo-panel visible" data-group="ideqs" data-step="0"><p>選擇你的 IDE, VS Code 與相容編輯器使用 Codex 擴充功能, Xcode 與 JetBrains IDE 提供各自的整合方式。</p></div>
+  <div class="demo-panel" data-group="ideqs" data-step="1"><p>VS Code, Cursor 或 Windsurf 選擇 Codex 圖示, 若沒看到, 打開命令選擇區執行 Codex: Open Codex Sidebar, Xcode 在編碼助手中選擇 Codex 作為代理, JetBrains 於 AI Chat 中選擇 Codex。</p></div>
+  <div class="demo-panel" data-group="ideqs" data-step="2"><p>開啟專案, 請 Codex 解釋程式碼庫, 進行聚焦的變更, 或協助除錯, 並在任務前後建立 Git checkpoint。</p></div>
+  <span class="step-indicator" data-indicator="ideqs">步驟 1 / 3</span>
+
+  <h3>適合使用 Codex IDE extension 的情境</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">進行聚焦的編輯</div><div class="event-desc">把相關檔案與 Codex 留在同一畫面。</div></div>
+    <div class="event-item"><div class="event-name">學習陌生程式碼</div><div class="event-desc">詢問編輯器中已開啟的檔案與符號。</div></div>
+    <div class="event-item"><div class="event-name">就地審查變更</div><div class="event-desc">在原始碼旁檢視並套用編輯。</div></div>
+    <div class="event-item"><div class="event-name">委派較大任務</div><div class="event-desc">從 IDE 啟動雲端工作, 再回來檢視結果。</div></div>
+  </div>
+</section>
+
+<section id="cloud">
+  <h2>Codex cloud</h2>
+  <p>在平行的雲端環境中執行程式撰寫任務, 平行工作, 並可從網頁, GitHub, Linear 或 Slack 開始工作。</p>
+
+  <h3>任務範例</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">CSV 匯出</div><div class="event-desc">為分析儀表板加入 CSV 匯出功能。</div></div>
+    <div class="event-item"><div class="event-name">修復邊界情況</div><div class="event-desc">修復結帳重試的邊界情況。</div></div>
+    <div class="event-item"><div class="event-name">撰寫文件</div><div class="event-desc">記錄新的驗證流程。</div></div>
+    <div class="event-item"><div class="event-name">改善無障礙</div><div class="event-desc">為設定頁面加入鍵盤導覽。</div></div>
+  </div>
+
+  <h3>三項核心能力</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">01 · 平行執行工作</div><div class="desc">為較長任務提供專屬環境, 讓它們在你處理其他事情時繼續執行。</div></div>
+    <div class="field"><div class="name">02 · 重現環境</div><div class="desc">設定每個儲存庫需要的相依套件, 工具, 變數與設定步驟。</div></div>
+    <div class="field"><div class="name">03 · 合併前先審查</div><div class="desc">檢視摘要與 diff, 要求後續調整, 或在結果就緒時開啟 pull request。</div></div>
+  </div>
+
+  <h3>設定 Codex cloud</h3>
+  <div class="stage-tabs" data-group="cloudqs">
+    <div class="stage-tab active" data-group="cloudqs" data-step="0" onclick="goStep('cloudqs',0)">1 · 登入</div>
+    <div class="stage-tab" data-group="cloudqs" data-step="1" onclick="goStep('cloudqs',1)">2 · 連接 GitHub</div>
+    <div class="stage-tab" data-group="cloudqs" data-step="2" onclick="goStep('cloudqs',2)">3 · 建立環境</div>
+    <div class="stage-tab" data-group="cloudqs" data-step="3" onclick="goStep('cloudqs',3)">4 · 開始任務</div>
+    <div class="stage-tab" data-group="cloudqs" data-step="4" onclick="goStep('cloudqs',4)">5 · 審查結果</div>
+  </div>
+  <div class="demo-panel visible" data-group="cloudqs" data-step="0"><p>前往 Codex, 以你的 ChatGPT 帳號登入。</p></div>
+  <div class="demo-panel" data-group="cloudqs" data-step="1"><p>依提示連接你的 GitHub 帳號, 再選擇 Codex 可存取的儲存庫。</p></div>
+  <div class="demo-panel" data-group="cloudqs" data-step="2"><p>打開環境設定, 為你的儲存庫建立環境, 設定任務所需的相依套件, 工具, 環境變數或密鑰。</p></div>
+  <div class="demo-panel" data-group="cloudqs" data-step="3"><p>回到 Codex, 選擇你的環境, 描述你想要的結果, 你可以觀察任務日誌, 或讓它在背景執行。</p></div>
+  <div class="demo-panel" data-group="cloudqs" data-step="4"><p>檢視摘要與 diff, 請 Codex 進行後續調整, 或在工作就緒時開啟 pull request。</p></div>
+  <span class="step-indicator" data-indicator="cloudqs">步驟 1 / 5</span>
+
+  <h3>適合使用 Codex cloud 的情境</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">工作需要在背景執行</div><div class="event-desc">委派較長任務, 待結果就緒時再回來查看。</div></div>
+    <div class="event-item"><div class="event-name">想比較多次嘗試</div><div class="event-desc">平行執行任務, 不佔用本機機器資源。</div></div>
+    <div class="event-item"><div class="event-name">工作起點在 GitHub, Linear 或 Slack</div><div class="event-desc">使用整合功能, 不需要離開 pull request, issue, 頻道或討論串就能交接工作。</div></div>
+    <div class="event-item"><div class="event-name">不在開發機器旁</div><div class="event-desc">從網頁或 Codex CLI 開始並檢視工作。</div></div>
+  </div>
+</section>
+
+<section id="changelog">
+  <h2>Codex changelog</h2>
+  <p>Codex 的最新更新, OpenAI 的程式撰寫代理。</p>
+
+  <div class="chip-row" data-chipgroup="clog">
+    <span class="chip active" data-group="clog" data-val="d1" onclick="chipSelect('clog','d1')">2026-07-14</span>
+    <span class="chip" data-group="clog" data-val="d2" onclick="chipSelect('clog','d2')">2026-07-13</span>
+    <span class="chip" data-group="clog" data-val="d3" onclick="chipSelect('clog','d3')">2026-07-09</span>
+    <span class="chip" data-group="clog" data-val="d4" onclick="chipSelect('clog','d4')">2026-07-08</span>
+    <span class="chip" data-group="clog" data-val="d5" onclick="chipSelect('clog','d5')">2026-07-06</span>
+    <span class="chip" data-group="clog" data-val="d6" onclick="chipSelect('clog','d6')">2026-07-01</span>
+    <span class="chip" data-group="clog" data-val="d7" onclick="chipSelect('clog','d7')">2026-06-29</span>
+    <span class="chip" data-group="clog" data-val="d8" onclick="chipSelect('clog','d8')">2026-06-26</span>
+    <span class="chip" data-group="clog" data-val="d9" onclick="chipSelect('clog','d9')">2026-06-25</span>
+  </div>
+
+  <div class="demo-panel visible" data-group="clog" data-val="d1">
+    <div class="response-box"><div class="response-field"><div class="rf-key">Codex CLI 0.144.4</div><div class="rf-val">維護性修補版本, 本次無使用者可見的變更。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="clog" data-val="d2">
+    <div class="response-box">
+      <div class="response-field"><div class="rf-key">ChatGPT for iOS 1.2026.188</div><div class="rf-val">新增 Codex 任務內的行內視覺化支援; 改善從對話建立與管理任務並提供可靠的新任務連結; 改善工具活動樣式與進度指示; 改善檔案開啟回饋與長提示下輸入框的可見性; 修復 Fast mode 選擇與還原, 初始提示忽略核准預設, 以及自動完成與滑動手勢卡住的問題。</div></div>
+      <div class="response-field"><div class="rf-key">Codex CLI 0.144.3</div><div class="rf-val">自 rust-v0.144.2 起僅發布版本號更新, 沒有合併的 pull request 變更。</div></div>
+      <div class="response-field"><div class="rf-key">Codex CLI 0.144.2</div><div class="rf-val">在回滾一項提示相關的回歸問題後, 恢復先前的 Guardian 自動審查政策, 請求格式與工具行為。</div></div>
+    </div>
+  </div>
+  <div class="demo-panel" data-group="clog" data-val="d3">
+    <div class="response-box">
+      <div class="response-field"><div class="rf-key">Codex 併入 ChatGPT 桌面應用程式</div><div class="rf-val">Codex 現已成為 macOS 與 Windows 版 ChatGPT 桌面應用程式的一部分, 並保留專案與既有設定; 新增可直接在應用程式中編輯 Markdown 與程式碼, 使用行內註解並要求 Codex 修訂選取內容; 可在側邊欄審查 GitHub pull request, 審查者意見與 diff 並列顯示; 支援跨儲存庫的單一專案工作; 以 GPT-5.6 讓 Computer Use 更快; 改善任務活動與進度的追蹤呈現; 簡化外掛管理, 移入 Settings; 改善行動連線穩定性並修復 SSH 專案的影片顯示問題。</div></div>
+      <div class="response-field"><div class="rf-key">Codex CLI 0.144.1</div><div class="rf-val">修復 GitHub 回傳精簡或重新排序的發布中繼資料時, 獨立安裝失敗的問題; 確保 macOS 套件安裝時, code-mode host 與 codex 執行檔一併提供; 在缺少配套 host 執行檔時, 讓 code mode 回退使用內嵌執行環境。</div></div>
+      <div class="response-field"><div class="rf-key">Codex CLI 0.144.0</div><div class="rf-val">使用限制重置額度現在會顯示類型與到期時間, 並可選擇要兌換的額度; 新增 writes 這種 app 核准模式, 允許宣告為唯讀的動作, 對寫入操作則詢問; MCP 工具現可在不需實驗性選擇加入的情況下互動式要求驗證; app-server host 可在執行時提供 Codex 驗證, 並在登入成功後導向代管頁面; 現可偵測全域 pnpm 安裝, 讓診斷與更新使用正確的套件管理器; 選擇 Ultra 推理強度時, 會在高併發多代理可能快速增加用量時提出警告; 修復多項 Windows sandbox, Intel macOS 與已恢復 ChatGPT 執行緒的錯誤; 裝置代碼登入警告現在會說明如何辨識並阻止釣魚嘗試。</div></div>
+    </div>
+  </div>
+  <div class="demo-panel" data-group="clog" data-val="d4">
+    <div class="response-box"><div class="response-field"><div class="rf-key">Codex CLI 0.143.0</div><div class="rf-val">遠端外掛預設啟用, 提供更豐富的目錄列表, npm marketplace 來源與可見的遠端 / 本機版本; Codex 可透過 macOS 與 Windows 系統代理, 包含 PAC 與 WPAD 設定, 轉送驗證與 Responses API 流量; 新增 codex remote-control pair 以產生手動配對代碼; 新增 Amazon Bedrock 上的 GPT-5.6 Sol, Terra 與 Luna 模型, 並首次完整支援 max 推理強度; MCP 工具現預設使用工具搜尋, ChatGPT 代管的 MCP 伺服器可明確使用工作階段驗證; app-server 用戶端可檢視環境, 列出子執行緒, 並透過特定回合分支歷程; 修復多項 Windows ConPTY, sandbox 憑證重試與 TUI 相關問題; 更新 OpenSSL, Hono, fast-uri, quick-xml 與 crossbeam-epoch 以修補資安通告。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="clog" data-val="d5">
+    <div class="response-box"><div class="response-field"><div class="rf-key">ChatGPT for iOS 1.2026.181</div><div class="rf-val">新增直接從對話建立, 搜尋, 開啟, 分支與管理 Codex 任務的支援; 新增暫存, 未暫存, 分支與最後一回合變更的篩選, 並可比較分支; 支援把選取的對話文字加入輸入框; 新增傳送前的圖片與檔案附件預覽; 新增附件選單中的相片與相機選擇器; 新增以私鑰或免憑證方式連接 SSH 主機的連線捷徑; 新增任務選單中的使用限制與額度細節; 改善任務清單, 初始載入, 自動完成, 模型與推理設定的任務範圍, 以及工作區 diff 準確度等多項體驗。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="clog" data-val="d6">
+    <div class="response-box"><div class="response-field"><div class="rf-key">Codex CLI 0.142.5</div><div class="rf-val">避免完整的 Responses WebSocket 請求內容被寫入追蹤日誌。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="clog" data-val="d7">
+    <div class="response-box"><div class="response-field"><div class="rf-key">Codex CLI 0.142.4</div><div class="rf-val">本次發布未發現使用者可見的變更。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="clog" data-val="d8">
+    <div class="response-box"><div class="response-field"><div class="rf-key">Codex CLI 0.142.3</div><div class="rf-val">自 0.142.2 起僅為維護性修補版本, 沒有使用者可見的變更。</div></div></div>
+  </div>
+  <div class="demo-panel" data-group="clog" data-val="d9">
+    <div class="response-box">
+      <div class="response-field"><div class="rf-key">Codex Remote 正式推出</div><div class="rf-val">Codex Remote 已正式推出, 可從 ChatGPT 行動應用程式在已連接的 Mac 或 Windows 主機上開始或延續工作, 檢視進度並核准動作; Remote Control 現使用每台 iOS 或 Android 裝置與每台主機之間經驗證的一對一 QR 配對; 新的 DigitalOcean 外掛可讓 Codex 佈建 DigitalOcean Droplet, 設定 SSH 存取, 並連接為 Codex App 的遠端工作區。</div></div>
+      <div class="response-field"><div class="rf-key">Codex CLI 0.142.2</div><div class="rf-val">MCP 工具在支援時預設使用工具搜尋, 同時維持與較舊模型和供應商的相容性; 啟用 respect_system_proxy 時, macOS 驗證用戶端可遵循系統代理, PAC 與 WPAD 設定; 外掛可透過本機清單與遠端目錄提供專屬深色模式標誌; apps 可利用伺服器提供的可見度與更快模型中繼資料呈現更豐富的安全緩衝 UI; 修復 Amazon Bedrock 憑證過期, 遠端 stdio MCP 伺服器路徑格式與 PowerShell 安全分類等問題; 更新內建 OpenSSL 與 esbuild 相依套件至已修補版本。</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="feature-maturity">
+  <h2>Feature Maturity</h2>
+  <p>如何解讀 ChatGPT 發布中的功能成熟度標籤。部分 ChatGPT 與 Codex 功能會附帶成熟度標籤, 讓你了解每項功能的可靠程度, 可能的變化, 以及應預期的支援等級。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">Under development</div><div class="desc">尚未準備好使用, 不建議使用。</div></div>
+    <div class="field"><div class="name">Experimental</div><div class="desc">不穩定, OpenAI 可能移除或變更, 使用時請自行承擔風險。</div></div>
+    <div class="field"><div class="name">Beta</div><div class="desc">已可廣泛測試, 多數層面已完整, 但部分內容可能依使用者回饋調整, 適合多數評估與試行, 預期會有小幅變動。</div></div>
+    <div class="field"><div class="name">Stable</div><div class="desc">完整支援, 已有文件記錄, 可廣泛使用, 行為與設定會長期保持一致, 適合正式環境使用, 移除通常會經過棄用流程。</div></div>
+  </div>
+</section>
+
+<section id="open-source">
+  <h2>Open Source</h2>
+  <p>Codex 的開源元件與協作方式。OpenAI 在公開的情況下開發 Codex 的關鍵部分, 這些工作放在 GitHub 上, 你可以追蹤進度, 回報問題並貢獻改善。若你維護廣泛使用的開源專案, 或想推薦重要專案的維護者, 也可以申請加入 Codex for OSS 計畫, 取得 API 額度, 具 Codex 的 ChatGPT Pro, 以及 Codex Security 的選擇性存取權。</p>
+
+  <h3>開源元件</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">Codex CLI</div><div class="desc">openai/codex, Codex 開源開發的主要據點。</div></div>
+    <div class="field"><div class="name">Codex SDK</div><div class="desc">openai/codex/codex-sdk, SDK 原始碼位於 Codex 儲存庫中。</div></div>
+    <div class="field"><div class="name">Codex App Server</div><div class="desc">openai/codex/codex-rs/app-server, App-server 原始碼位於 Codex 儲存庫中。</div></div>
+    <div class="field"><div class="name">Skills</div><div class="desc">openai/skills, 擴充 Codex 的可重複使用 skills。</div></div>
+    <div class="field"><div class="name">IDE extension</div><div class="desc">非開源。</div></div>
+    <div class="field"><div class="name">Codex cloud</div><div class="desc">非開源。</div></div>
+    <div class="field"><div class="name">Universal cloud environment</div><div class="desc">openai/codex-universal, Codex cloud 使用的基礎環境。</div></div>
+  </div>
+
+  <h3>哪裡回報問題與提出功能請求</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">錯誤與功能請求</div><div class="event-desc">openai/codex/issues。</div></div>
+    <div class="event-item"><div class="event-name">討論區</div><div class="event-desc">openai/codex/discussions。</div></div>
+  </div>
+  <div class="takeaway"><p>提交 issue 時, 請附上你使用的元件, 例如 CLI, SDK, IDE 擴充功能或 Codex cloud, 並盡可能附上版本資訊。</p></div>
+</section>
+
+</main>
+
+<script>
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    document.getElementById('themeToggle').textContent = isDark ? '☀ 亮色模式' : '🌙 暗色模式';
+  }
+
+  function goStep(group, n) {
+    const tabs = document.querySelectorAll('.stage-tab[data-group="' + group + '"]');
+    const panels = document.querySelectorAll('.demo-panel[data-group="' + group + '"][data-step]');
+    panels.forEach(function(p) {
+      p.classList.toggle('visible', Number(p.dataset.step) === n);
+    });
+    tabs.forEach(function(t) {
+      const s = Number(t.dataset.step);
+      t.classList.remove('active', 'done');
+      if (s === n) t.classList.add('active');
+      else if (s < n) t.classList.add('done');
+    });
+    const ind = document.querySelector('[data-indicator="' + group + '"]');
+    if (ind) ind.textContent = '步驟 ' + (n + 1) + ' / ' + tabs.length;
+  }
+
+  function chipSelect(group, val) {
+    document.querySelectorAll('.chip[data-group="' + group + '"]').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.val === val);
+    });
+    document.querySelectorAll('.demo-panel[data-group="' + group + '"][data-val]').forEach(function(p) {
+      p.classList.toggle('visible', p.dataset.val === val);
+    });
+  }
+
+  function filterGlossary() {
+    const q = document.getElementById('glossarySearch').value.trim().toLowerCase();
+    let count = 0;
+    document.querySelectorAll('.glossary-card').forEach(function(card) {
+      const match = card.dataset.search.toLowerCase().includes(q);
+      card.style.display = match ? '' : 'none';
+      if (match) count++;
+    });
+    document.getElementById('glossaryCount').textContent = count + ' / ' + document.querySelectorAll('.glossary-card').length + ' 個詞彙';
+  }
+
+  function updateReasoning(val) {
+    const labels = ['Light / Low', 'Medium', 'High', 'Extra High'];
+    const desc = [
+      '適合快速且範圍明確的任務, 反應最快。',
+      '在速度與深度之間取得平衡, 適合需要更多規劃的任務。',
+      '適合有多個步驟, 來源或取捨的困難工作。',
+      '適合最困難的工作, 給模型最多時間規劃與檢查。'
+    ];
+    const i = Number(val);
+    document.getElementById('reasoningResult').innerHTML = labels[i] + ' : <span>' + desc[i] + '</span>';
+  }
+
+  ['qsD','qsW','imp','skBuild','dqs','wqs','cliqs','ideqs','cloudqs'].forEach(function(g) { goStep(g, 0); });
+  chipSelect('wk', 'deck');
+  chipSelect('promptChat', 'understand');
+  chipSelect('model', 'sol');
+  chipSelect('price', 'free');
+  chipSelect('priceFaq', 'q1');
+  chipSelect('wnews', 'w1');
+  chipSelect('clog', 'd1');
+  filterGlossary();
+</script>
+</body>
+</html>

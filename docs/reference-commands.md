@@ -1,0 +1,211 @@
+# Commands
+
+Reference for commands and keyboard shortcuts in the ChatGPT desktop app
+
+Use these commands and keyboard shortcuts to navigate the app.
+
+## Keyboard shortcuts
+
+| Action | Shortcut |
+|--------|----------|
+| General | |
+| Command menu | Cmd/Ctrl + Shift + P or Cmd/Ctrl + K |
+| Settings | Cmd/Ctrl + , |
+| Keyboard shortcuts | Cmd/Ctrl + Shift + / |
+| Open folder | Cmd/Ctrl + O |
+| Navigate back | Cmd/Ctrl + [ |
+| Navigate forward | Cmd/Ctrl + ] |
+| Increase font size | Cmd/Ctrl + + |
+| Decrease font size | Cmd/Ctrl + - |
+| Toggle sidebar | Cmd/Ctrl + B |
+| Open review tab | Ctrl + Shift + G |
+| Toggle review panel | Cmd/Ctrl + Alt + B |
+| Toggle bottom panel | Cmd/Ctrl + J |
+| Toggle terminal | Ctrl + ` |
+| Clear the terminal | Ctrl + L |
+| Chat | |
+| Quick Chat | Cmd/Ctrl + Alt + N |
+| Task | |
+| New task | Cmd/Ctrl + N or Cmd/Ctrl + Shift + O |
+| Search tasks | Cmd/Ctrl + G |
+| Find in task | Cmd/Ctrl + F |
+| Previous task | Cmd/Ctrl + Shift + [ |
+| Next task | Cmd/Ctrl + Shift + ] |
+| Input | |
+| Dictation | Ctrl + Shift + D |
+
+To find, customize, or reset shortcuts, open Settings > Keyboard Shortcuts. You can search by command name or switch the search field into keystroke mode and press the shortcut you want to find.
+
+## Search past tasks and find in a task
+
+Use task search (Cmd/Ctrl + G) to reopen a past task. When expanded matching is available, it can also match task content and Git branch names, so you can search for a phrase from the task or a branch such as `fix/login-redirect`.
+
+Use Find in task (Cmd/Ctrl + F) after opening a task to find text within it. It doesn't search across other tasks.
+
+For actions that start with `/`, see Slash commands (/codex/reference/slash-commands).
+
+## Deep links
+
+The ChatGPT desktop app keeps the `codex://` URL scheme for compatibility, so links can open specific parts of the app directly. Encode query string values before adding them to a URL.
+
+### Supported links
+
+Use these canonical forms when you create links. The sections below list the full reference by link type.
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://threads/new` | A new local task. |
+| `codex://new?<query>` | A new local task with at least one query parameter. |
+| `codex://threads/<thread-id>` | A local task. `<thread-id>` is its technical thread ID. |
+| `codex://settings` | Settings. |
+| `codex://settings/connections/<connection-type>` | Computer, device, or SSH connection settings. |
+| `codex://settings/connections/ssh/add?name=<ssh-config-host>` | Adds a host from your SSH config to Codex. |
+| `codex://skills` | Skills. |
+| `codex://automations` | Scheduled with the create flow open. |
+| `codex://plugins/install/<plugin-name>?marketplace=<marketplace-name>` | The install flow for a plugin from a known marketplace. |
+| `codex://plugins/<plugin-id>` | A plugin detail page. |
+| `codex://plugins/<plugin-name>?marketplacePath=<absolute-marketplace-path>` | A local plugin detail page from a local marketplace. |
+| `codex://pets/install?name=<pet-name>&imageUrl=<https-image-url>` | The pet install flow. |
+
+### Tasks
+
+Use these links when you need to open an existing local task or start a new one.
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://threads/<thread-id>` | A local task. `<thread-id>` is its technical thread ID. |
+| `codex://threads/new` | A new local task. |
+| `codex://threads/new?<query>` | A new local task with optional query parameters. |
+| `codex://new?<query>` | A new local task. Include at least one of `prompt`, `path`, or `originUrl`; otherwise the link does nothing. |
+
+For `codex://threads/new` or `codex://new`, add any of these query parameters as needed; you can combine them in the same URL.
+
+| Query parameter | Required | What it does |
+|-----------------|----------|--------------|
+| `prompt=<text>` | No | Sets the initial composer text. |
+| `path=<absolute-path>` | No | Opens the new task in a local workspace. `path` must be an absolute path to a local directory. When valid, Codex uses that directory as the active workspace. |
+| `originUrl=<git-remote-url>` | No | Matches one of your current workspace roots by Git remote URL. If `path` is also present, Codex resolves `path` first. |
+
+Example: Show me some fun stats about how I've been using Codex (codex://threads/new?prompt=Show%20me%20some%20fun%20stats%20about%20how%20I%27ve%20been%20using%20Codex)
+
+#### Start a task with a plugin
+
+To help users start a plugin-backed task, include a plugin mention in the prompt before you encode it:
+
+```
+[@Example](plugin://example@openai-curated) Summarize this document: https://example.com/document/123
+```
+
+Encode the complete prompt as a URI component, for example with `encodeURIComponent` in JavaScript, and pass it to the `prompt` parameter:
+
+```
+codex://new?prompt=%5B%40Example%5D(plugin%3A%2F%2Fexample%40openai-curated)%20Summarize%20this%20document%3A%20https%3A%2F%2Fexample.com%2Fdocument%2F123
+```
+
+The link opens a new task with the decoded prompt in the composer. It doesn't send the prompt automatically. After the user sends it, Codex can use an installed plugin in that task. If the plugin isn't installed but is available to the user, Codex asks the user to install it and connect any required apps. After setup, the user can select Continue to resume the same task. Workspace settings can limit which plugins a user can install. For plugin installation and permission details, see Plugins (/codex/plugins).
+
+### Settings
+
+Use these links when you need to open Settings or a specific settings page.
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://settings` | Settings. |
+| `codex://settings/browser-use` | Browser settings. |
+| `codex://settings/computer-use/google-chrome` | Google Chrome settings for computer use. |
+| `codex://settings/connections` | Remote connections settings. |
+| `codex://settings/connections/computer` | Settings for controlling this Mac or PC from another device. |
+| `codex://settings/connections/devices` | Settings for controlling other devices. |
+| `codex://settings/connections/ssh` | SSH connection settings. |
+| `codex://settings/connections/ssh/add?name=<ssh-config-host>` | Adds the named host alias as a Codex-managed connection, then opens SSH connection settings. |
+
+The `name` value must match a host alias in `~/.ssh/config`. The link disables automatic connection for the added host. If Codex can't find the named host, it opens SSH connection settings and shows an error.
+
+Unsupported `codex://settings/...` paths open the main Settings page.
+
+### Skills
+
+Use these links when you need to open Skills.
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://skills` | Skills. |
+
+### Scheduled
+
+Use these links when you need to open Scheduled.
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://automations` | Scheduled with the create flow open. |
+
+### Plugins
+
+Plugin links use different forms depending on whether you are installing from a marketplace, opening a plugin, or working from a local `marketplace.json`. For plugin basics, see Plugins (/codex/plugins). For local or repo marketplace setup, see Build plugins (/codex/build-plugins#build-your-own-curated-plugin-list).
+
+#### Plugin install
+
+Use this form to open the install flow for a plugin from a marketplace that Codex already knows about.
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://plugins/install/<plugin-name>?marketplace=<marketplace-name>` | The plugin detail or install flow for a plugin. |
+
+| Query parameter | Required | What it does |
+|-----------------|----------|--------------|
+| `marketplace=<marketplace-name>` | Yes | Identifies the marketplace. For an OpenAI-curated plugin, use `openai-curated`. |
+
+The install link accepts only the `marketplace` query parameter. If Codex can't find the requested marketplace or plugin, it opens the Plugins page instead.
+
+#### Plugin detail
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://plugins/<plugin-id>` | A plugin detail page. |
+
+`<plugin-id>` must identify the plugin. For an OpenAI-curated plugin, use the form `<plugin-name>@openai-curated`.
+
+Codex-generated plugin links can also include these query parameters. Omit both when you write a link manually.
+
+| Query parameter | Required | What it does |
+|-----------------|----------|--------------|
+| `hostId=<host-id>` | No | Identifies the Codex host that owns the plugin context, such as `local` or one of your configured remote connections. Codex provides these IDs. |
+| `source=manage` | No | Preserves the app's plugin-management entry point. It's not admin-only. |
+
+Example: Open the OpenAI Developers plugin (codex://plugins/openai-developers@openai-curated)
+
+#### Local plugin
+
+For local or repo marketplace setup, see Build plugins (/codex/build-plugins#build-your-own-curated-plugin-list).
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://plugins/<plugin-name>?marketplacePath=<absolute-marketplace-path>` | A local plugin detail page from a local marketplace. |
+
+| Query parameter | Required | What it does |
+|-----------------|----------|--------------|
+| `marketplacePath=<absolute-marketplace-path>` | Yes | Absolute path to the local `marketplace.json`, for example `/Users/alex/.agents/plugins/marketplace.json`. |
+| `mode=share` | No | Opens the share flow for that local plugin. |
+
+### Pets
+
+Use these links to open the pet install flow when that feature is enabled.
+
+| Deep link | Opens |
+|-----------|-------|
+| `codex://pets/install?name=<pet-name>&imageUrl=<https-image-url>` | The pet install flow. |
+
+| Query parameter | Required | What it does |
+|-----------------|----------|--------------|
+| `name=<pet-name>` | Yes | Sets the pet name. The value must contain at least one non-whitespace character. |
+| `imageUrl=<https-image-url>` | Yes | Provides an absolute HTTPS URL for the pet image or sprite sheet. |
+| `description=<text>` | No | Adds a description to the install flow. |
+| `spriteVersionNumber=<1-or-2>` | No | Selects the sprite-sheet format. The default is `1`; the only other supported value is `2`. |
+
+The install link accepts only these query parameters. Invalid names, non-HTTPS image URLs, unsupported sprite versions, or extra path segments cause the link to do nothing.
+
+## See also
+
+- Features (/codex/features)
+- Settings (/codex/reference/settings)
+- Slash commands (/codex/reference/slash-commands)

@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatGPT 與 Codex 開發者指南</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+           background: #f0f4f8; color: #1a202c; line-height: 1.7; }
+
+    header { background: linear-gradient(135deg, #dbeafe 0%, #f0f4f8 100%);
+             border-bottom: 1px solid #bfdbfe; padding: 48px 24px 40px; text-align: center; }
+    header h1 { font-size: 2.2rem; font-weight: 700; color: #1e3a5f; }
+    header p  { margin-top: 10px; color: #4a5568; font-size: 1.05rem;
+                max-width: 640px; margin-inline: auto; }
+
+    main    { max-width: 940px; margin: 0 auto; padding: 48px 24px 80px; }
+    section { margin-bottom: 56px; }
+    h2 { font-size: 1.4rem; font-weight: 600; color: #1e40af;
+         border-left: 4px solid #3b82f6; padding-left: 14px; margin-bottom: 20px; }
+    h3 { font-size: 1.05rem; font-weight: 600; color: #1a202c; margin: 24px 0 8px; }
+    p  { color: #4a5568; margin-bottom: 12px; }
+
+    .code-block { background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 8px;
+      padding: 16px 18px; font-family: monospace; font-size: 0.8rem; color: #1a202c;
+      overflow-x: auto; margin-top: 14px; line-height: 1.65; white-space: pre; }
+    .kw  { color: #7c3aed; }
+    .fn  { color: #16a34a; }
+    .str { color: #d97706; }
+    .cmt { color: #94a3b8; font-style: italic; }
+    .key { color: #2563eb; }
+
+    .info-box { background: #dbeafe; border: 1px solid #93c5fd; border-radius: 10px;
+      padding: 16px 20px; margin-top: 14px; }
+    .info-box .tag { display: inline-block; background: #3b82f6; color: #fff;
+      font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+      margin-bottom: 10px; letter-spacing: 0.05em; }
+    .info-box p { color: #1e3a5f; font-size: 0.88rem; margin: 0; }
+
+    .takeaway { background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+      border: 1px solid #4ade80; border-radius: 10px; padding: 20px 24px; margin-top: 16px; }
+    .takeaway p { color: #166534; font-size: 0.9rem; margin: 0; }
+
+    .api-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .field { background: #fff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 14px 16px; }
+    .field .name { font-family: monospace; font-size: 0.85rem; color: #16a34a; font-weight: 600; }
+    .field .desc { font-size: 0.82rem; color: #4a5568; margin-top: 4px; }
+
+    .event-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .event-item { background: #fff; border: 1px solid #cbd5e0; border-radius: 6px;
+      padding: 9px 14px; display: flex; gap: 14px; align-items: baseline; }
+    .event-name { font-family: monospace; font-size: 0.82rem; color: #16a34a;
+      min-width: 170px; flex-shrink: 0; }
+    .event-desc { font-size: 0.82rem; color: #4a5568; }
+
+    .response-box { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px;
+      padding: 20px; margin-top: 16px; }
+    .response-field { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+    .response-field:last-child { border-bottom: none; }
+    .rf-key { font-family: monospace; font-size: 0.82rem; color: #d97706; width: 160px; flex-shrink: 0; }
+    .rf-val { font-size: 0.85rem; color: #374151; }
+
+    .stage-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stage-tab  { padding: 7px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #e2e8f0; color: #4a5568; transition: all 0.2s; }
+    .stage-tab.active { background: #2563eb; border-color: #3b82f6; color: #fff; }
+    .stage-tab.done   { background: #166534; border-color: #4ade80; color: #dcfce7; }
+    .step-indicator { color: #6b7280; font-size: 0.82rem; margin-top: 10px; display: block; }
+
+    .demo-panel { display: none; }
+    .demo-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .col-card { background: #fff; border: 1px solid #cbd5e0; border-radius: 10px; padding: 16px 18px; }
+    .col-card-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: #6b7280; margin-bottom: 10px; }
+    .col-card p { font-size: 0.83rem; color: #4a5568; margin-bottom: 6px; }
+    .col-card p:last-child { margin-bottom: 0; }
+
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .chip-label { font-size: 0.75rem; color: #6b7280; }
+    .chip { padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #e2e8f0; color: #4a5568; transition: all 0.2s; }
+    .chip.active { background: #dcfce7; border-color: #4ade80; color: #166534; }
+
+    .data-table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid #cbd5e0; border-radius: 8px; max-height: 520px; overflow-y: auto; }
+    table.data-table { border-collapse: collapse; width: 100%; font-size: 0.76rem; min-width: 460px; }
+    table.data-table th, table.data-table td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; }
+    table.data-table th { background: #f0f4f8; color: #1e3a5f; font-weight: 700; white-space: nowrap; position: sticky; top: 0; }
+    table.data-table tr:last-child td { border-bottom: none; }
+    table.data-table code { font-family: monospace; color: #2563eb; }
+
+    .search-box { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+    .search-box input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e0;
+      background: #fff; color: #1a202c; font-size: 0.85rem; }
+    .search-box input:focus { outline: 2px solid #3b82f6; }
+    .filter-count { font-size: 0.75rem; color: #6b7280; white-space: nowrap; }
+
+    @media (max-width: 640px) {
+      .api-fields, .two-col, .three-col { grid-template-columns: 1fr; }
+    }
+
+    #themeToggle { position: fixed; top: 16px; right: 16px; z-index: 9999;
+      padding: 7px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; border: 1px solid #cbd5e0; background: #fff; color: #1a202c;
+      transition: all 0.25s; box-shadow: 0 2px 8px rgba(0,0,0,0.12); letter-spacing: 0.03em; }
+    #themeToggle:hover { border-color: #2563eb; color: #2563eb; }
+
+    body.dark { background: #0f1117; color: #e2e8f0; }
+    body.dark header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom-color: #2d3748; }
+    body.dark header h1 { color: #f7fafc; }
+    body.dark header p  { color: #a0aec0; }
+    body.dark h2 { color: #90cdf4; border-left-color: #4299e1; }
+    body.dark h3 { color: #e2e8f0; }
+    body.dark p  { color: #a0aec0; }
+    body.dark .code-block { background: #0d1117; border-color: #2d3748; color: #e2e8f0; }
+    body.dark .kw  { color: #9f7aea; }
+    body.dark .fn  { color: #68d391; }
+    body.dark .str { color: #f6ad55; }
+    body.dark .cmt { color: #4a5568; }
+    body.dark .key { color: #63b3ed; }
+    body.dark .info-box { background: #1a202c; border-color: #2a4a6a; }
+    body.dark .info-box .tag { background: #2a4a6a; color: #90cdf4; }
+    body.dark .info-box p { color: #a0aec0; }
+    body.dark .takeaway { background: linear-gradient(135deg, #1a2a1a, #1a202c); border-color: #276749; }
+    body.dark .takeaway p { color: #c6f6d5; }
+    body.dark .field { background: #1a202c; border-color: #2d3748; }
+    body.dark .field .name { color: #68d391; }
+    body.dark .field .desc { color: #718096; }
+    body.dark .event-item { background: #1a202c; border-color: #2d3748; }
+    body.dark .event-name { color: #68d391; }
+    body.dark .event-desc { color: #718096; }
+    body.dark .response-box { background: #1a202c; border-color: #2d3748; }
+    body.dark .response-field { border-bottom-color: #2d3748; }
+    body.dark .rf-key { color: #f6ad55; }
+    body.dark .rf-val { color: #a0aec0; }
+    body.dark .step-indicator { color: #718096; }
+    body.dark .stage-tab { background: #1a202c; border-color: #2d3748; color: #718096; }
+    body.dark .stage-tab.active { background: #2b6cb0; border-color: #4299e1; color: #fff; }
+    body.dark .stage-tab.done   { background: #276749; border-color: #48bb78; color: #c6f6d5; }
+    body.dark .col-card { background: #1a202c; border-color: #2d3748; }
+    body.dark .col-card-title { color: #4a5568; }
+    body.dark .col-card p { color: #a0aec0; }
+    body.dark .chip { background: #1a202c; border-color: #2d3748; color: #718096; }
+    body.dark .chip.active { background: #1c3a2a; border-color: #38a169; color: #68d391; }
+    body.dark .data-table-wrap { border-color: #2d3748; }
+    body.dark table.data-table th { background: #1a202c; color: #90cdf4; }
+    body.dark table.data-table td { border-bottom-color: #2d3748; color: #a0aec0; }
+    body.dark table.data-table code { color: #63b3ed; }
+    body.dark .search-box input { background: #1a202c; border-color: #2d3748; color: #e2e8f0; }
+    body.dark #themeToggle { background: #1a202c; color: #e2e8f0; border-color: #4a5568; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    body.dark #themeToggle:hover { border-color: #90cdf4; color: #90cdf4; }
+  </style>
+</head>
+<body>
+
+<button id="themeToggle" onclick="toggleTheme()">🌙 暗色模式</button>
+
+<header>
+  <h1>ChatGPT 與 Codex 開發者指南</h1>
+  <p>涵蓋程式碼審查, Hooks, plugins, SDK, app-server 協定與 CLI 完整參考的技術文件, 提供可搜尋與可互動探索的介面。</p>
+</header>
+
+<main>
+
+<section id="code-review">
+  <h2>Code Review</h2>
+  <p>在 ChatGPT 與 Codex 各用戶端之間審查程式碼變更。在 ChatGPT Work 中上傳程式碼供審查, 或透過已安裝的來源外掛提供, 在提示中指名 pull request, 分支, commit, 檔案與審查準則。</p>
+
+  <h3>在各介面中發起審查</h3>
+  <div class="three-col">
+    <div class="col-card">
+      <div class="col-card-title">桌面應用程式</div>
+      <p>打開審查面板了解變更內容, 給予行級意見, 決定要暫存, 還原, 提交或推送哪些內容。輸入框輸入 /review, 選擇 Review against a base branch 或 Review uncommitted changes。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">CLI</div>
+      <p>輸入 /review 開啟 CLI 審查預設集, Codex 啟動專屬的審查器讀取所選 diff, 回報有優先順序且可執行的發現, 不會變更你的工作目錄。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">IDE 擴充功能</div>
+      <p>在輸入框輸入 /review, 選擇 Review against a base branch 或 Review uncommitted changes, /review 只有在開啟的專案位於 Git 儲存庫內時才會出現。</p>
+    </div>
+  </div>
+
+  <h3>選擇審查範圍</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">Review against a base branch</div><div class="event-desc">找出合併基準點並審查你的分支 diff。</div></div>
+    <div class="event-item"><div class="event-name">Review uncommitted changes</div><div class="event-desc">包含已暫存, 未暫存與未追蹤的檔案。</div></div>
+    <div class="event-item"><div class="event-name">Review a commit</div><div class="event-desc">審查指定 commit 的確切變更集合。</div></div>
+    <div class="event-item"><div class="event-name">Custom review instructions</div><div class="event-desc">依你提供的準則聚焦審查重點。</div></div>
+  </div>
+  <p>審查面板反映的是你 Git 儲存庫的狀態, 而非只有 Codex 編輯的內容, 預設顯示 Unstaged, 也可切換 Staged, Commit, Branch 或 Last turn。</p>
+
+  <h3>暫存與還原檔案</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">Entire diff</div><div class="desc">使用審查標頭中的 Stage all 或 Revert all。</div></div>
+    <div class="field"><div class="name">Per file</div><div class="desc">對單一檔案暫存, 取消暫存或還原。</div></div>
+    <div class="field"><div class="name">Per hunk</div><div class="desc">對單一 hunk 暫存, 取消暫存或還原。</div></div>
+  </div>
+
+  <h3>Pull request 審查流程</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 開啟審查面板</div><div class="event-desc">在 pull request 分支上開啟審查面板。</div></div>
+    <div class="event-item"><div class="event-name">2 · 檢視情境</div><div class="event-desc">檢視 pull request 情境, 意見與已變更檔案。</div></div>
+    <div class="event-item"><div class="event-name">3 · 請求修復</div><div class="event-desc">請 Codex 修復你想處理的特定意見。</div></div>
+    <div class="event-item"><div class="event-name">4 · 檢視結果</div><div class="event-desc">在審查面板檢視產生的 diff。</div></div>
+    <div class="event-item"><div class="event-name">5 · 推送</div><div class="event-desc">準備好後, 暫存, 提交並推送到 pull request 分支。</div></div>
+  </div>
+  <div class="info-box"><p>安裝並用 gh auth login 驗證 GitHub CLI, Codex 才能載入 pull request 情境, 審查意見與已變更檔案。</p></div>
+</section>
+
+<section id="terminal">
+  <h2>Integrated Terminal</h2>
+  <p>不離開任務就能執行指令並檢視輸出, 桌面應用程式中每個任務都包含限定於目前專案或 worktree 的終端機, 從右上角終端機圖示開啟, 或按 Ctrl+`。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">git status</div><div class="desc">檢查目前變更狀態。</div></div>
+    <div class="field"><div class="name">git pull --rebase</div><div class="desc">同步遠端變更。</div></div>
+    <div class="field"><div class="name">pnpm test / npm test</div><div class="desc">執行測試。</div></div>
+    <div class="field"><div class="name">pnpm run lint</div><div class="desc">執行專案特定檢查。</div></div>
+  </div>
+  <div class="info-box"><p>ChatGPT 可以讀取目前的終端機輸出, 因此能在與你協作時檢查執行中的開發伺服器或參考失敗的建置紀錄。若常執行某個指令, 在本機環境中定義一個 action, 會以捷徑形式出現在桌面應用程式中, 並在整合終端機執行, Cmd+K 開啟指令面板但不會清除終端機, 清除終端機請按 Ctrl+L。</p></div>
+</section>
+
+<section id="build-skills">
+  <h2>Build skills</h2>
+  <p>用 agent skills 賦予 Codex 新的能力與專長, 一個 skill 封裝指示, 資源與選擇性腳本, 讓 Codex 能可靠地遵循某個工作流程, skills 以開放的 agent skills 標準為基礎, 可打包成 plugins 分發給 ChatGPT Work 與桌面應用程式。</p>
+
+  <h3>Codex 如何使用 skills</h3>
+  <div class="two-col">
+    <div class="col-card"><div class="col-card-title">明確呼叫</div><p>在提示中用 /skills 或 $ 直接提及 skill。</p></div>
+    <div class="col-card"><div class="col-card-title">隱含呼叫</div><p>當你的任務符合 skill 描述時, Codex 自動選用該 skill, 有效的描述應精簡, 把關鍵使用情境放在前面, 並包含觸發詞以利比對。</p></div>
+  </div>
+
+  <h3>Skill 目錄結構</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">SKILL.md, 必要</div><div class="desc">指示與中繼資料。</div></div>
+    <div class="field"><div class="name">scripts/, 選擇性</div><div class="desc">可執行程式碼。</div></div>
+    <div class="field"><div class="name">references/, 選擇性</div><div class="desc">參考文件。</div></div>
+    <div class="field"><div class="name">assets/, 選擇性</div><div class="desc">範本與資源。</div></div>
+    <div class="field"><div class="name">agents/openai.yaml, 選擇性</div><div class="desc">外觀與相依性。</div></div>
+  </div>
+
+  <h3>建立與尋找位置</h3>
+  <p>用 $skill-creator 內建建立工具, 引導你定義 skill 的功能與觸發時機, 或建立一個含 SKILL.md 檔案並附上 name 與 description frontmatter 的資料夾。Skills 會從儲存庫層級 (.agents/skills), 使用者層級 ($HOME/.agents/skills), 管理員層級 (/etc/codex/skills) 與系統層級發現。</p>
+  <div class="takeaway"><p>讓每個 skill 聚焦單一任務, 優先使用指示而非腳本, 除非需要確定性行為, 撰寫具明確輸入輸出的命令式步驟, 並用實際提示測試 skill 描述能否正確觸發。</p></div>
+</section>
+
+<section id="build-plugins">
+  <h2>Build plugins</h2>
+  <p>建立, 測試並分發 ChatGPT 的 plugins。本文件面向 plugin 作者, 單一儲存庫或個人工作流程建議先從本機 skills 開始, 需要跨團隊分享工作流程, 封裝連接器或 MCP 設定, 打包生命週期 hooks, 或發布穩定套件時建立 plugin。</p>
+
+  <h3>用 @plugin-creator 快速建立</h3>
+  <div class="info-box"><p>內建的 @plugin-creator skill 提供最快的設定路徑, 會自動產生所需的 .codex-plugin/plugin.json 清單並產生用於測試的本機市集項目。</p></div>
+  <div class="code-block"><span class="str">$plugin-creator create a Codex plugin for my ChatGPT app. Use
+plugin_asdk_app_6a4c0062f3b88191855c0a80eac5d53d and name it Acme Support.
+Include a personal marketplace entry so I can test it locally.</span></div>
+
+  <h3>手動建立一個 plugin</h3>
+  <div class="stage-tabs" data-group="pluginBuild">
+    <div class="stage-tab active" data-group="pluginBuild" data-step="0" onclick="goStep('pluginBuild',0)">1 · 建立資料夾</div>
+    <div class="stage-tab" data-group="pluginBuild" data-step="1" onclick="goStep('pluginBuild',1)">2 · 建立清單</div>
+    <div class="stage-tab" data-group="pluginBuild" data-step="2" onclick="goStep('pluginBuild',2)">3 · 加入 skill</div>
+    <div class="stage-tab" data-group="pluginBuild" data-step="3" onclick="goStep('pluginBuild',3)">4 · 加入市集</div>
+  </div>
+  <div class="demo-panel visible" data-group="pluginBuild" data-step="0"><div class="code-block"><span class="fn">mkdir</span> <span class="key">-p</span> <span class="str">my-first-plugin/.codex-plugin</span></div></div>
+  <div class="demo-panel" data-group="pluginBuild" data-step="1"><div class="code-block">{
+  <span class="str">"name"</span>: <span class="str">"my-first-plugin"</span>,
+  <span class="str">"version"</span>: <span class="str">"1.0.0"</span>,
+  <span class="str">"description"</span>: <span class="str">"Reusable greeting workflow"</span>,
+  <span class="str">"skills"</span>: <span class="str">"./skills/"</span>
+}</div></div>
+  <div class="demo-panel" data-group="pluginBuild" data-step="2"><div class="code-block"><span class="cmt">---</span>
+<span class="key">name</span>: hello
+<span class="key">description</span>: Greet the user with a friendly message.
+<span class="cmt">---</span>
+
+Greet the user warmly and ask how you can help.</div></div>
+  <div class="demo-panel" data-group="pluginBuild" data-step="3"><p>用 @plugin-creator 產生市集, 或依照精選 plugin 清單指示手動接入 Codex。</p></div>
+  <span class="step-indicator" data-indicator="pluginBuild">步驟 1 / 4</span>
+
+  <h3>Marketplace 中繼資料欄位</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>name</td><td>頂層欄位, 識別市集。</td></tr>
+        <tr><td>interface.displayName</td><td>在桌面應用程式中顯示的市集標題。</td></tr>
+        <tr><td>plugins[]</td><td>每個 plugin 一個物件。</td></tr>
+        <tr><td>source.path</td><td>相對於市集根目錄的 plugin 路徑, 以 ./ 開頭。</td></tr>
+        <tr><td>policy.installation</td><td>AVAILABLE, INSTALLED_BY_DEFAULT 或 NOT_AVAILABLE。</td></tr>
+        <tr><td>policy.authentication</td><td>決定驗證發生在安裝時或首次使用時。</td></tr>
+        <tr><td>category</td><td>plugin 分類。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Git-backed 項目可用 source: "url" 或 "git-subdir", npm registry 項目需提供 package, 選擇性提供 version 與 registry, Codex 下載時不會執行生命週期腳本。</p>
+
+  <h3>Plugin 結構與清單欄位</h3>
+  <div class="code-block">my-plugin/
+<span class="cmt">├── .codex-plugin/plugin.json   (必要)</span>
+<span class="cmt">├── skills/my-skill/SKILL.md    (選擇性)</span>
+<span class="cmt">├── hooks/hooks.json            (選擇性)</span>
+<span class="cmt">├── .app.json                   (選擇性)</span>
+<span class="cmt">├── .mcp.json                   (選擇性)</span>
+<span class="cmt">└── assets/                     (選擇性)</span></div>
+  <div class="api-fields">
+    <div class="field"><div class="name">name / version / description</div><div class="desc">識別 plugin。</div></div>
+    <div class="field"><div class="name">author / homepage / repository / license</div><div class="desc">發布者與探索用中繼資料。</div></div>
+    <div class="field"><div class="name">skills / mcpServers / apps / hooks</div><div class="desc">相對於 plugin 根目錄, 指向所包含的元件。</div></div>
+    <div class="field"><div class="name">interface</div><div class="desc">控制安裝畫面的呈現, 例如 displayName, category, capabilities, brandColor。</div></div>
+  </div>
+
+  <h3>分享與停用</h3>
+  <p>安裝並在 Work 或 Codex 中建立 plugin 後, 從桌面應用程式的 Plugins 中選擇 Created by you, 開啟詳細頁面選擇 Share, 加入工作區成員, 群組, 或複製分享連結。工作區管理員可在 requirements.toml 加入 features.plugin_sharing = false 停用分享。</p>
+</section>
+
+<section id="build-app">
+  <h2>Build an app</h2>
+  <p>建置 plugin 中由 MCP 支援的 app 部分, 可選擇性搭配 Apps SDK 提供的 UI。Apps SDK 是用於 MCP 支援 app 的 ChatGPT 應用程式開發框架, 建立在 MCP 之上, 你的伺服器公開工具並回傳結構化資料。</p>
+
+  <h3>App 可以包含的部分</h3>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">MCP 伺服器</div>
+      <p>定義工具, 處理驗證, 回傳結構化資料, 並強制執行整合的實際行為。</p>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">選擇性 MCP UI</div>
+      <p>當使用者需要在 ChatGPT 中檢視, 比較, 編輯, 確認或導覽結構化資訊時才需要, 若工具呼叫與模型回應已足夠, 不需要自訂 UI。</p>
+    </div>
+  </div>
+
+  <h3>先建立 MCP, 再視需要加入 UI</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 找出工作流程</div><div class="event-desc">識別 app 應支援的使用者工作流程。</div></div>
+    <div class="event-item"><div class="event-name">2 · 定義工具</div><div class="event-desc">定義這些工作流程所需的 MCP 工具。</div></div>
+    <div class="event-item"><div class="event-name">3 · 撰寫清楚的描述</div><div class="event-desc">寫出清楚的工具名稱, 描述, 輸入與輸出 schema。</div></div>
+    <div class="event-item"><div class="event-name">4 · 標記安全註記</div><div class="event-desc">為每個工具標記準確的安全註記, 再檢視安全與隱私指引。</div></div>
+    <div class="event-item"><div class="event-name">5 · 加入驗證</div><div class="event-desc">只為需要的資料或動作加入驗證。</div></div>
+    <div class="event-item"><div class="event-name">6 · 開發模式測試</div><div class="event-desc">在打包成 plugin 前, 於 ChatGPT 開發模式測試 app。</div></div>
+  </div>
+  <div class="takeaway"><p>即使加入 UI, 也要讓工具與渲染層保持解耦, 工具仍應回傳有用的結構化資料與模型可讀結果, UI 元件則專注於呈現與互動。</p></div>
+</section>
+
+<section id="submit-plugins">
+  <h2>Submit plugins</h2>
+  <p>透過 OpenAI Platform 提交 plugin 供審查。plugin 可以是 skills only, app only, 或 app 加 skills 的組合, 提交表單會收集上架資訊, MCP 伺服器細節, 已包含的 skills, 起始提示, 測試案例, 國家可用性與政策聲明。</p>
+
+  <h3>提交前準備</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>材料</th><th>要準備的內容</th></tr></thead>
+      <tbody>
+        <tr><td>上架詳情</td><td>名稱, 簡短與詳細描述, 標誌, 分類, 網站, 支援, 隱私與條款網址。</td></tr>
+        <tr><td>開發者身分</td><td>在 OpenAI Platform 中已驗證的個人或企業身分。</td></tr>
+        <tr><td>MCP 伺服器</td><td>公開的伺服器網址, 網域驗證存取權, 驗證細節, 示範憑證, 內容安全政策, 準確的工具中繼資料。</td></tr>
+        <tr><td>工具註記</td><td>每個 MCP 工具的 readOnlyHint, openWorldHint, destructiveHint 值。</td></tr>
+        <tr><td>Skills</td><td>skills plugin 需要最終檔案樹的 skill 套件或壓縮檔。</td></tr>
+        <tr><td>提示</td><td>展示實用且真實工作流程的起始提示。</td></tr>
+        <tr><td>測試案例</td><td>5 個正向與 3 個負向測試案例, 附明確預期行為。</td></tr>
+        <tr><td>可用性</td><td>plugin 應該開放的國家或地區。</td></tr>
+        <tr><td>發佈說明</td><td>本次提交的簡短摘要與自前版本以來的變更。</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>建立提交</h3>
+  <div class="stage-tabs" data-group="submitStep">
+    <div class="stage-tab active" data-group="submitStep" data-step="0" onclick="goStep('submitStep',0)">1 · 開啟入口</div>
+    <div class="stage-tab" data-group="submitStep" data-step="1" onclick="goStep('submitStep',1)">2 · 選擇類型</div>
+    <div class="stage-tab" data-group="submitStep" data-step="2" onclick="goStep('submitStep',2)">3 · 完成表單</div>
+    <div class="stage-tab" data-group="submitStep" data-step="3" onclick="goStep('submitStep',3)">4 · 提交審查</div>
+  </div>
+  <div class="demo-panel visible" data-group="submitStep" data-step="0"><p>開啟 plugin 提交入口, 選擇 Create plugin。</p></div>
+  <div class="demo-panel" data-group="submitStep" data-step="1"><p>選擇 Skills only, 或 With MCP (app only 或 app 加 skills)。</p></div>
+  <div class="demo-panel" data-group="submitStep" data-step="2"><p>依序完成 Info, MCP, Skills, Prompts, Testing, Global 各分頁。</p></div>
+  <div class="demo-panel" data-group="submitStep" data-step="3"><p>在發佈說明中摘要變更內容, 完成政策聲明後選擇 Submit for Review。</p></div>
+  <span class="step-indicator" data-indicator="submitStep">步驟 1 / 4</span>
+
+  <h3>工具註記標準</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>註記</th><th>使用時機</th></tr></thead>
+      <tbody>
+        <tr><td>readOnlyHint</td><td>只有在工具只擷取, 查詢, 列出, 取得或計算資訊且不變更任何內容時設為 true。</td></tr>
+        <tr><td>openWorldHint</td><td>對寫入工具, 若能變更公開可見的網際網路狀態設為 true, 只在完全於封閉系統內運作時設為 false。</td></tr>
+        <tr><td>destructiveHint</td><td>對寫入工具, 若能刪除, 覆寫, 撤銷存取或造成不可復原的副作用設為 true。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="takeaway"><p>提交前確認: 提交者具備 Apps Management 寫入權限, 發布者身分已驗證, MCP 伺服器使用公開正式網址, 審查者憑證不需要 MFA 或簡訊驗證即可運作, 工具回應不含不必要的個人資料或機密。</p></div>
+</section>
+
+<section id="hooks">
+  <h2>Hooks</h2>
+  <p>在 Codex 生命週期中執行確定性腳本。Hooks 是 Codex 的擴充框架, 讓開發者把自訂腳本注入代理迴圈, 可用於傳送對話到自訂記錄系統, 掃描不慎貼上的 API 金鑰, 自動從對話建立持久記憶, 在回合完成時執行驗證檢查, 依目錄情境自訂提示。</p>
+
+  <h3>執行行為與發現位置</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">並行執行</div><div class="desc">同一事件的多個相符 hooks 會同時啟動, 避免互相阻擋。</div></div>
+    <div class="field"><div class="name">信任審查</div><div class="desc">非受管理的指令 hooks 需要先審查與信任才能執行, 系統依 hook 的雜湊值記錄信任狀態。</div></div>
+    <div class="field"><div class="name">回合範圍</div><div class="desc">PreToolUse, PermissionRequest, PostToolUse, PreCompact, PostCompact, UserPromptSubmit, SubagentStop, Stop 於回合範圍運作。</div></div>
+    <div class="field"><div class="name">工作階段範圍</div><div class="desc">SessionStart, SubagentStart 於執行緒或子代理啟動範圍運作。</div></div>
+  </div>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>發現位置</th></tr></thead>
+      <tbody>
+        <tr><td>~/.codex/hooks.json</td></tr>
+        <tr><td>~/.codex/config.toml</td></tr>
+        <tr><td>&lt;repo&gt;/.codex/hooks.json</td></tr>
+        <tr><td>&lt;repo&gt;/.codex/config.toml</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>事件參考</h3>
+  <div class="chip-row" data-chipgroup="hookEvt">
+    <span class="chip active" data-group="hookEvt" data-val="sessionstart" onclick="chipSelect('hookEvt','sessionstart')">SessionStart</span>
+    <span class="chip" data-group="hookEvt" data-val="subagentstart" onclick="chipSelect('hookEvt','subagentstart')">SubagentStart</span>
+    <span class="chip" data-group="hookEvt" data-val="pretooluse" onclick="chipSelect('hookEvt','pretooluse')">PreToolUse</span>
+    <span class="chip" data-group="hookEvt" data-val="permissionrequest" onclick="chipSelect('hookEvt','permissionrequest')">PermissionRequest</span>
+    <span class="chip" data-group="hookEvt" data-val="posttooluse" onclick="chipSelect('hookEvt','posttooluse')">PostToolUse</span>
+    <span class="chip" data-group="hookEvt" data-val="precompact" onclick="chipSelect('hookEvt','precompact')">PreCompact / PostCompact</span>
+    <span class="chip" data-group="hookEvt" data-val="userpromptsubmit" onclick="chipSelect('hookEvt','userpromptsubmit')">UserPromptSubmit</span>
+    <span class="chip" data-group="hookEvt" data-val="subagentstop" onclick="chipSelect('hookEvt','subagentstop')">SubagentStop</span>
+    <span class="chip" data-group="hookEvt" data-val="stop" onclick="chipSelect('hookEvt','stop')">Stop</span>
+  </div>
+  <div class="demo-panel visible" data-group="hookEvt" data-val="sessionstart">
+    <p>工作階段開始時執行, matcher 依 source 篩選 (startup, resume, clear, compact)。JSON 輸出可加入 hookSpecificOutput.additionalContext 補充開發情境。</p>
+    <div class="code-block">{ <span class="str">"hookSpecificOutput"</span>: { <span class="str">"hookEventName"</span>: <span class="str">"SessionStart"</span>,
+  <span class="str">"additionalContext"</span>: <span class="str">"Load the workspace conventions before editing."</span> } }</div>
+  </div>
+  <div class="demo-panel" data-group="hookEvt" data-val="subagentstart">
+    <p>子代理開始時執行, matcher 依 agent_type 篩選, 輸入含 turn_id, agent_id, agent_type, permission_mode。</p>
+  </div>
+  <div class="demo-panel" data-group="hookEvt" data-val="pretooluse">
+    <p>攔截 Bash, apply_patch 與 MCP 工具呼叫, matcher 依 tool_name 篩選, 可拒絕, 改寫或補充情境。</p>
+    <div class="code-block">{ <span class="str">"hookSpecificOutput"</span>: { <span class="str">"hookEventName"</span>: <span class="str">"PreToolUse"</span>,
+  <span class="str">"permissionDecision"</span>: <span class="str">"deny"</span>,
+  <span class="str">"permissionDecisionReason"</span>: <span class="str">"Destructive command blocked by hook."</span> } }</div>
+  </div>
+  <div class="demo-panel" data-group="hookEvt" data-val="permissionrequest">
+    <p>當 Codex 需要核准時執行, matcher 依 tool_name 篩選, 若多個 hooks 決策, deny 優先於其他決定。</p>
+    <div class="code-block">{ <span class="str">"hookSpecificOutput"</span>: { <span class="str">"hookEventName"</span>: <span class="str">"PermissionRequest"</span>,
+  <span class="str">"decision"</span>: { <span class="str">"behavior"</span>: <span class="str">"deny"</span>, <span class="str">"message"</span>: <span class="str">"Blocked by repository policy."</span> } } }</div>
+  </div>
+  <div class="demo-panel" data-group="hookEvt" data-val="posttooluse">
+    <p>Bash, apply_patch 與 MCP 工具產生輸出後執行, 可在提供回饋的同時阻擋後續處理。</p>
+  </div>
+  <div class="demo-panel" data-group="hookEvt" data-val="precompact">
+    <p>PreCompact 於對話壓縮前執行, PostCompact 於壓縮後執行, matcher 都依 trigger 篩選 (manual, auto), 回傳 continue: false 可阻止或於壓縮後停止。</p>
+  </div>
+  <div class="demo-panel" data-group="hookEvt" data-val="userpromptsubmit">
+    <p>使用者送出提示時執行, 不使用 matcher, 可補充開發情境或以 decision: "block" 阻擋。</p>
+  </div>
+  <div class="demo-panel" data-group="hookEvt" data-val="subagentstop">
+    <p>子代理停止時執行, matcher 依 agent_type 篩選, 任何相符 hook 回傳 continue: false 會阻止其他 hooks 繼續該子代理。</p>
+  </div>
+  <div class="demo-panel" data-group="hookEvt" data-val="stop">
+    <p>回合完成時執行, 不使用 matcher, decision: "block" 會用 reason 作為自動延續提示繼續執行。</p>
+  </div>
+
+  <h3>Matcher 樣式與管理</h3>
+  <p>matcher 欄位使用正規表示式篩選 hooks 何時啟動, 用 "*", "" 或省略以符合全部事件, 例如 Bash, ^apply_patch$, Edit|Write, mcp__filesystem__.*。在 config.toml 設定 [features] hooks = false 可停用 hooks, 管理員可透過 requirements.toml 強制設定, 並用 allow_managed_hooks_only = true 只載入受管理 hooks。</p>
+</section>
+
+<section id="codex-environments">
+  <h2>Codex environments</h2>
+  <p>選擇 Codex 任務在哪裡執行, 以及檔案如何被隔離。在桌面應用程式的 ChatGPT 下拉選單選擇 Codex, 開始任務時可選擇執行位置。</p>
+  <div class="three-col">
+    <div class="col-card"><div class="col-card-title">Local</div><p>直接在你目前的專案目錄中工作。</p></div>
+    <div class="col-card"><div class="col-card-title">Worktree</div><p>在 Git worktree 中隔離變更。</p></div>
+    <div class="col-card"><div class="col-card-title">Cloud</div><p>在已設定的雲端環境中遠端執行。</p></div>
+  </div>
+  <p>Local 與 Worktree 任務都在你的電腦上執行。</p>
+</section>
+
+<section id="local-environments">
+  <h2>Local environments</h2>
+  <p>為 worktree 設定常用動作與初始化腳本, 只限桌面應用程式中的 Codex 使用, 設定會保存在專案根目錄的 .codex 資料夾中, 可納入版控與團隊共享。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">Setup scripts</div><div class="desc">Codex 建立新 worktree 時自動執行, 用於安裝相依套件或建置流程。</div></div>
+    <div class="field"><div class="name">Actions</div><div class="desc">定義常用操作如啟動開發伺服器或執行測試, 出現在工具列並於整合終端機執行。</div></div>
+    <div class="field"><div class="name">內建 Git 工具</div><div class="desc">Diff 檢視顯示目前變更並支援行內意見, 可暫存, 還原, 提交, 推送分支或開啟 pull request。</div></div>
+  </div>
+  <div class="code-block"><span class="cmt"># TypeScript 專案範例</span>
+<span class="fn">npm</span> <span class="key">install</span>
+<span class="fn">npm</span> <span class="key">run</span> <span class="str">build</span></div>
+</section>
+
+<section id="cloud-environments">
+  <h2>Cloud environments</h2>
+  <p>自訂 Codex 在雲端任務中安裝與執行的內容, 例如加入相依套件, 安裝 linter 與格式化工具, 設定環境變數。</p>
+
+  <h3>雲端任務如何執行</h3>
+  <div class="stage-tabs" data-group="cloudRun">
+    <div class="stage-tab active" data-group="cloudRun" data-step="0" onclick="goStep('cloudRun',0)">1 · 建立容器</div>
+    <div class="stage-tab" data-group="cloudRun" data-step="1" onclick="goStep('cloudRun',1)">2 · 執行設定腳本</div>
+    <div class="stage-tab" data-group="cloudRun" data-step="2" onclick="goStep('cloudRun',2)">3 · 套用網路設定</div>
+    <div class="stage-tab" data-group="cloudRun" data-step="3" onclick="goStep('cloudRun',3)">4 · 迴圈執行</div>
+    <div class="stage-tab" data-group="cloudRun" data-step="4" onclick="goStep('cloudRun',4)">5 · 顯示結果</div>
+  </div>
+  <div class="demo-panel visible" data-group="cloudRun" data-step="0"><p>Codex 建立容器並在選定的分支或 commit SHA 簽出你的儲存庫。</p></div>
+  <div class="demo-panel" data-group="cloudRun" data-step="1"><p>執行設定腳本, 以及快取容器恢復時的選擇性維護腳本。</p></div>
+  <div class="demo-panel" data-group="cloudRun" data-step="2"><p>套用網際網路存取設定, 設定腳本階段有網路存取, 代理階段預設關閉但可設定有限或無限制存取。</p></div>
+  <div class="demo-panel" data-group="cloudRun" data-step="3"><p>代理在迴圈中執行終端機指令, 編輯程式碼, 執行檢查並嘗試驗證工作成果, 若儲存庫含 AGENTS.md 會用它找出專案特定的檢查與測試指令。</p></div>
+  <div class="demo-panel" data-group="cloudRun" data-step="4"><p>代理完成後顯示答案與變更檔案的 diff, 你可以開啟 PR 或提出後續問題。</p></div>
+  <span class="step-indicator" data-indicator="cloudRun">步驟 1 / 5</span>
+
+  <h3>環境變數與 Secrets</h3>
+  <div class="two-col">
+    <div class="col-card"><div class="col-card-title">環境變數</div><p>在整個任務期間都有效, 包含設定腳本與代理階段。</p></div>
+    <div class="col-card"><div class="col-card-title">Secrets</div><p>與環境變數類似但多一層加密, 只在任務執行時解密, 只提供給設定腳本使用, 代理階段開始前會被移除。</p></div>
+  </div>
+  <p>Codex 會快取容器狀態最多 12 小時以加速新任務與後續請求, 若變更設定腳本, 環境變數或 secrets 會自動使快取失效, 也可以在環境頁面手動選擇 Reset cache。</p>
+</section>
+
+<section id="worktrees">
+  <h2>Worktrees</h2>
+  <p>Worktrees 讓 Codex 能在同一個專案中執行多個獨立任務而互不干擾, 對排程任務在專屬背景 worktree 中運作特別有用, 建立在 Git 的 worktree 功能之上, 建立第二份儲存庫副本並共享 Git 中繼資料。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">Local checkout</div><div class="desc">你原本的儲存庫。</div></div>
+    <div class="field"><div class="name">Worktree</div><div class="desc">應用程式內從本機簽出建立的 Git worktree。</div></div>
+    <div class="field"><div class="name">Handoff</div><div class="desc">在 Local 與 Worktree 環境之間搬移任務的流程。</div></div>
+  </div>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">平行工作</div><div class="event-desc">不打擾目前 Local 設定的情況下平行工作。</div></div>
+    <div class="event-item"><div class="event-name">排隊背景任務</div><div class="event-desc">在保持前景專注的同時排隊背景任務。</div></div>
+    <div class="event-item"><div class="event-name">轉移至 Local</div><div class="event-desc">把任務轉移到 Local 進行檢查或協作。</div></div>
+  </div>
+  <p>Codex 在 $CODEX_HOME/worktrees 中維護受管理的 worktree, 預設保留最近 15 個, .worktreeinclude 檔案可指定需複製到新 worktree 的忽略檔案, 例如環境設定檔。</p>
+</section>
+
+<section id="codex-sdk">
+  <h2>Codex SDK</h2>
+  <p>以程式化方式控制本機 Codex 代理, 適用於 CI/CD 流程, 建立能與 Codex 互動的自訂代理, 或把 Codex 整合進自己的應用程式與工具中。</p>
+
+  <h3>TypeScript 與 Python 函式庫</h3>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-card-title">TypeScript, 伺服器端, Node.js 18+</div>
+      <div class="code-block"><span class="kw">import</span> { Codex } <span class="kw">from</span> <span class="str">"@openai/codex-sdk"</span>;
+
+<span class="kw">const</span> codex = <span class="kw">new</span> <span class="fn">Codex</span>();
+<span class="kw">const</span> thread = codex.<span class="fn">startThread</span>();
+<span class="kw">const</span> result = <span class="kw">await</span> thread.<span class="fn">run</span>(
+  <span class="str">"Make a plan to diagnose and fix the CI failures"</span>
+);</div>
+    </div>
+    <div class="col-card">
+      <div class="col-card-title">Python, Python 3.10+</div>
+      <div class="code-block"><span class="kw">from</span> openai_codex <span class="kw">import</span> Codex, Sandbox
+
+<span class="kw">with</span> <span class="fn">Codex</span>() <span class="kw">as</span> codex:
+    thread = codex.<span class="fn">thread_start</span>(
+        model=<span class="str">"gpt-5.4"</span>,
+        sandbox=Sandbox.workspace_write,
+    )
+    result = thread.<span class="fn">run</span>(<span class="str">"Make a plan..."</span>)</div>
+    </div>
+  </div>
+
+  <h3>Sandbox presets</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">Sandbox.read_only</div><div class="desc">讀取檔案, 不允許寫入。</div></div>
+    <div class="field"><div class="name">Sandbox.workspace_write</div><div class="desc">讀取檔案並在工作區與已設定的可寫入根目錄中寫入。</div></div>
+    <div class="field"><div class="name">Sandbox.full_access</div><div class="desc">在沒有檔案系統存取限制下執行。</div></div>
+  </div>
+</section>
+
+<section id="app-server">
+  <h2>Codex App Server</h2>
+  <p>透過 app-server 協定把 Codex 嵌入你的產品, 這是 Codex 用於驅動豐富用戶端 (例如 Codex VS Code 擴充功能) 的介面, 適合需要驗證, 對話歷程, 核准與串流代理事件的深度整合, 實作已在 Codex GitHub 儲存庫開源。</p>
+
+  <h3>連線與傳輸方式</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>傳輸方式</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>stdio, 預設</td><td>--listen stdio://, 換行分隔的 JSON (JSONL)。</td></tr>
+        <tr><td>websocket, 實驗性</td><td>--listen ws://IP:PORT, 每個 WebSocket 文字訊框一則 JSON-RPC 訊息。</td></tr>
+        <tr><td>Unix socket</td><td>--listen unix:// 或 unix://PATH, 使用標準 HTTP Upgrade 交握。</td></tr>
+        <tr><td>off</td><td>--listen off, 不公開本機傳輸。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="code-block"><span class="cmt"># 啟動監聽</span>
+<span class="fn">codex</span> app-server <span class="key">--listen</span> ws://127.0.0.1:4500
+<span class="cmt"># 連接終端機介面</span>
+<span class="fn">codex</span> <span class="key">--remote</span> ws://127.0.0.1:4500</div>
+
+  <h3>核心元件</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">Thread</div><div class="desc">使用者與 Codex 代理之間的對話, 內含多個 turn。</div></div>
+    <div class="field"><div class="name">Turn</div><div class="desc">一次使用者請求與後續的代理工作, 內含多個 item 並串流增量更新。</div></div>
+    <div class="field"><div class="name">Item</div><div class="desc">輸入或輸出的單位, 例如使用者訊息, 代理訊息, 指令執行, 檔案變更, 工具呼叫。</div></div>
+  </div>
+
+  <h3>API 方法搜尋</h3>
+  <p>app-server 公開超過 60 個 JSON-RPC 方法, 涵蓋 threads, turns, review, 程序與指令執行, 檔案系統, models, skills, plugins, apps 等領域, 以下為完整方法列表, 可搜尋方法名稱找到你需要的項目。</p>
+  <div class="search-box">
+    <input type="text" id="apiSearch" placeholder="搜尋 API 方法, 例如 thread, turn, skill..." oninput="filterList('apiSearch','apiTable')" />
+    <span class="filter-count" id="apiSearch-count"></span>
+  </div>
+  <div class="data-table-wrap">
+    <table class="data-table" id="apiTable">
+      <thead><tr><th>方法</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr data-row><td><code>thread/start</code></td><td>建立新執行緒, 自動訂閱其 turn/item 事件。</td></tr>
+        <tr data-row><td><code>thread/resume</code></td><td>重新開啟既有執行緒, 讓後續 turn/start 接續其上。</td></tr>
+        <tr data-row><td><code>thread/fork</code></td><td>複製儲存歷程分支出新執行緒 ID, 可用 lastTurnId 限定範圍。</td></tr>
+        <tr data-row><td><code>thread/read</code></td><td>讀取儲存的執行緒但不恢復它, includeTurns 可含完整回合歷程。</td></tr>
+        <tr data-row><td><code>thread/list</code></td><td>分頁瀏覽儲存的執行緒紀錄, 支援多種篩選條件。</td></tr>
+        <tr data-row><td><code>thread/turns/list</code></td><td>實驗性, 分頁瀏覽儲存執行緒的回合歷程而不恢復它。</td></tr>
+        <tr data-row><td><code>thread/items/list</code></td><td>實驗性, 分頁瀏覽持久化的執行緒項目。</td></tr>
+        <tr data-row><td><code>thread/loaded/list</code></td><td>列出目前載入記憶體中的執行緒 ID。</td></tr>
+        <tr data-row><td><code>thread/name/set</code></td><td>設定或更新執行緒的使用者可見名稱。</td></tr>
+        <tr data-row><td><code>thread/goal/set</code></td><td>設定執行緒的目標。</td></tr>
+        <tr data-row><td><code>thread/goal/get</code></td><td>讀取執行緒目前的目標。</td></tr>
+        <tr data-row><td><code>thread/goal/clear</code></td><td>清除執行緒的目標。</td></tr>
+        <tr data-row><td><code>thread/metadata/update</code></td><td>修補以 SQLite 儲存的執行緒中繼資料, 目前支援 gitInfo。</td></tr>
+        <tr data-row><td><code>thread/archive</code></td><td>把執行緒紀錄檔移入已封存目錄, 並嘗試封存衍生的子執行緒。</td></tr>
+        <tr data-row><td><code>thread/delete</code></td><td>永久刪除已持久化的執行緒與其衍生子執行緒。</td></tr>
+        <tr data-row><td><code>thread/unsubscribe</code></td><td>取消此連線對執行緒 turn/item 事件的訂閱。</td></tr>
+        <tr data-row><td><code>thread/unarchive</code></td><td>把已封存的執行緒紀錄還原回作用中的工作階段目錄。</td></tr>
+        <tr data-row><td><code>thread/status/changed</code></td><td>通知, 當已載入執行緒的執行狀態改變時發出。</td></tr>
+        <tr data-row><td><code>thread/compact/start</code></td><td>觸發執行緒歷程壓縮, 進度透過 turn/item 通知串流。</td></tr>
+        <tr data-row><td><code>thread/shellCommand</code></td><td>對執行緒執行使用者發起的 shell 指令, 於沙箱外以完整權限執行。</td></tr>
+        <tr data-row><td><code>thread/backgroundTerminals/clean</code></td><td>實驗性, 停止執行緒所有執行中的背景終端機。</td></tr>
+        <tr data-row><td><code>thread/backgroundTerminals/list</code></td><td>實驗性, 列出已載入執行緒的執行中背景終端機。</td></tr>
+        <tr data-row><td><code>thread/backgroundTerminals/terminate</code></td><td>實驗性, 依 processId 終止一個背景終端機。</td></tr>
+        <tr data-row><td><code>thread/rollback</code></td><td>已淘汰, 從記憶體情境中移除最後 N 個回合。</td></tr>
+        <tr data-row><td><code>turn/start</code></td><td>把使用者輸入加入執行緒並開始 Codex 產生內容, 串流事件。</td></tr>
+        <tr data-row><td><code>thread/inject_items</code></td><td>把原始 Responses API 項目附加到執行緒的模型可見歷程, 不啟動使用者回合。</td></tr>
+        <tr data-row><td><code>turn/steer</code></td><td>把使用者輸入附加到進行中的回合, 不建立新回合。</td></tr>
+        <tr data-row><td><code>turn/interrupt</code></td><td>請求取消進行中的回合。</td></tr>
+        <tr data-row><td><code>review/start</code></td><td>為執行緒啟動 Codex 審查器。</td></tr>
+        <tr data-row><td><code>command/exec</code></td><td>在伺服器沙箱下執行單一指令, 不啟動執行緒或回合。</td></tr>
+        <tr data-row><td><code>command/exec/write</code></td><td>寫入 stdin 位元組到執行中的 command/exec 工作階段。</td></tr>
+        <tr data-row><td><code>command/exec/resize</code></td><td>調整以 PTY 為基礎的 command/exec 工作階段大小。</td></tr>
+        <tr data-row><td><code>command/exec/terminate</code></td><td>停止執行中的 command/exec 工作階段。</td></tr>
+        <tr data-row><td><code>process/spawn</code></td><td>實驗性, 在 Codex 沙箱外啟動明確的程序工作階段。</td></tr>
+        <tr data-row><td><code>process/writeStdin</code></td><td>實驗性, 寫入 stdin 到執行中的程序工作階段。</td></tr>
+        <tr data-row><td><code>process/resizePty</code></td><td>實驗性, 調整以 PTY 為基礎的程序工作階段大小。</td></tr>
+        <tr data-row><td><code>process/kill</code></td><td>實驗性, 終止執行中的程序工作階段。</td></tr>
+        <tr data-row><td><code>model/list</code></td><td>列出可用模型與其推理強度選項及輸入模態。</td></tr>
+        <tr data-row><td><code>modelProvider/capabilities/read</code></td><td>讀取模型/供應商組合的能力範圍。</td></tr>
+        <tr data-row><td><code>experimentalFeature/list</code></td><td>列出功能旗標與生命週期階段中繼資料。</td></tr>
+        <tr data-row><td><code>experimentalFeature/enablement/set</code></td><td>修補支援功能鍵的記憶體內執行時期設定。</td></tr>
+        <tr data-row><td><code>environment/info</code></td><td>實驗性, 連接已設定的執行環境並回傳其 shell 與預設工作目錄。</td></tr>
+        <tr data-row><td><code>permissionProfile/list</code></td><td>列出 beta 權限設定檔與有效需求是否允許各項。</td></tr>
+        <tr data-row><td><code>collaborationMode/list</code></td><td>實驗性, 列出協作模式預設集。</td></tr>
+        <tr data-row><td><code>skills/list</code></td><td>列出一個或多個 cwd 的 skills。</td></tr>
+        <tr data-row><td><code>skills/extraRoots/set</code></td><td>取代行程層級用於發現獨立 skills 的額外根目錄。</td></tr>
+        <tr data-row><td><code>skills/changed</code></td><td>通知, 當監看的本機 skill 檔案變更時發出。</td></tr>
+        <tr data-row><td><code>hooks/list</code></td><td>列出一個或多個 cwd 中發現的生命週期 hooks。</td></tr>
+        <tr data-row><td><code>marketplace/add</code></td><td>加入遠端 plugin 市集並持久化到使用者市集設定。</td></tr>
+        <tr data-row><td><code>marketplace/remove</code></td><td>移除已設定的市集與其已安裝的市集根目錄。</td></tr>
+        <tr data-row><td><code>marketplace/upgrade</code></td><td>重新整理已設定的 Git 市集。</td></tr>
+        <tr data-row><td><code>plugin/list</code></td><td>開發中, 列出發現的 plugin 市集與 plugin 狀態。</td></tr>
+        <tr data-row><td><code>plugin/read</code></td><td>開發中, 依市集路徑或名稱讀取一個 plugin。</td></tr>
+        <tr data-row><td><code>plugin/install</code></td><td>開發中, 從市集安裝一個 plugin。</td></tr>
+        <tr data-row><td><code>plugin/uninstall</code></td><td>開發中, 解除安裝一個已安裝的 plugin。</td></tr>
+        <tr data-row><td><code>plugin/skill/read</code></td><td>依市集, plugin id 與 skill 名稱, 隨選讀取遠端 plugin skill。</td></tr>
+        <tr data-row><td><code>app/list</code></td><td>列出可用的 apps (連接器), 含可存取性與啟用中繼資料。</td></tr>
+        <tr data-row><td><code>skills/config/write</code></td><td>依路徑啟用或停用 skills。</td></tr>
+        <tr data-row><td><code>mcpServer/oauth/login</code></td><td>為已設定的 MCP 伺服器開始 OAuth 登入。</td></tr>
+        <tr data-row><td><code>tool/requestUserInput</code></td><td>實驗性, 針對工具呼叫向使用者提出 1 到 3 個簡短問題。</td></tr>
+        <tr data-row><td><code>mcpServer/elicitation/request</code></td><td>伺服器請求, 詢問用戶端 MCP 伺服器要求的結構化表單輸入或確認。</td></tr>
+        <tr data-row><td><code>item/permissions/requestApproval</code></td><td>伺服器請求, 詢問用戶端授予 request_permissions 工具要求的部分權限。</td></tr>
+        <tr data-row><td><code>config/mcpServer/reload</code></td><td>從磁碟重新載入 MCP 伺服器設定並排入已載入執行緒的重新整理。</td></tr>
+        <tr data-row><td><code>mcpServerStatus/list</code></td><td>列出 MCP 伺服器, 工具, 資源與驗證狀態。</td></tr>
+        <tr data-row><td><code>mcpServer/resource/read</code></td><td>透過已初始化的 MCP 伺服器讀取單一 MCP 資源。</td></tr>
+        <tr data-row><td><code>mcpServer/tool/call</code></td><td>在執行緒設定的 MCP 伺服器上呼叫工具。</td></tr>
+        <tr data-row><td><code>windowsSandbox/setupStart</code></td><td>為 elevated 或 unelevated 模式開始 Windows sandbox 設定。</td></tr>
+        <tr data-row><td><code>feedback/upload</code></td><td>提交回饋報告。</td></tr>
+        <tr data-row><td><code>config/read</code></td><td>擷取解析設定分層後磁碟上的有效設定。</td></tr>
+        <tr data-row><td><code>externalAgentConfig/detect</code></td><td>偵測可遷移的外部代理成品。</td></tr>
+        <tr data-row><td><code>externalAgentConfig/import</code></td><td>套用選定的外部代理遷移項目。</td></tr>
+        <tr data-row><td><code>config/value/write</code></td><td>寫入單一設定鍵值到使用者的 config.toml。</td></tr>
+        <tr data-row><td><code>config/batchWrite</code></td><td>將設定編輯以原子方式套用到 config.toml。</td></tr>
+        <tr data-row><td><code>configRequirements/read</code></td><td>從 requirements.toml 及/或 MDM 擷取需求。</td></tr>
+        <tr data-row><td><code>fs/readFile</code> 等</td><td>透過 app-server v2 檔案系統 API 操作絕對路徑的檔案。</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>啟動或恢復一個執行緒</h3>
+  <div class="code-block">{ <span class="str">"method"</span>: <span class="str">"thread/start"</span>, <span class="str">"id"</span>: <span class="str">10</span>, <span class="str">"params"</span>: {
+  <span class="str">"model"</span>: <span class="str">"gpt-5.4"</span>, <span class="str">"cwd"</span>: <span class="str">"/Users/me/project"</span>,
+  <span class="str">"approvalPolicy"</span>: <span class="str">"never"</span>, <span class="str">"sandbox"</span>: <span class="str">"workspaceWrite"</span>
+} }</div>
+
+  <h3>事件與 Items</h3>
+  <p>啟動或恢復執行緒後, 持續讀取傳輸串流上的通知, 包含 thread/started, thread/archived, turn/started, turn/completed, turn/diff/updated, turn/plan/updated 與各種 item/* 事件。ThreadItem 常見型別包含 userMessage, agentMessage, plan, reasoning, commandExecution, fileChange, mcpToolCall, webSearch, enteredReviewMode, exitedReviewMode, contextCompaction, 每個 item 都會發出 item/started 與 item/completed 兩個生命週期事件。</p>
+
+  <h3>核准流程</h3>
+  <p>指令執行核准依序為 item/started, item/commandExecution/requestApproval, 用戶端回應 accept/acceptForSession/decline/cancel, serverRequest/resolved, 最後 item/completed。檔案變更核准流程類似, 使用 item/fileChange/requestApproval。內建的 request_permissions 工具會送出 item/permissions/requestApproval, 回應時只包含授予的權限子集, scope 設為 session 可讓授權延續到同一工作階段的後續回合。</p>
+</section>
+
+<section id="agents-sdk">
+  <h2>Use Codex with the Agents SDK</h2>
+  <p>把 Codex 作為 MCP 伺服器執行, 從其他 MCP 用戶端連接它, 例如以 OpenAI Agents SDK 建置的代理。</p>
+  <div class="code-block"><span class="fn">codex</span> mcp-server</div>
+
+  <h3>公開的工具</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">codex</div><div class="desc">用提示與設定覆寫執行一個 Codex 工作階段, 需要 prompt, 可選 approval-policy 與 sandbox。</div></div>
+    <div class="field"><div class="name">codex-reply</div><div class="desc">用執行緒 ID 與新提示延續工作階段, 需要 prompt 與 threadId。</div></div>
+  </div>
+  <div class="takeaway"><p>透過把 Codex CLI 公開為 MCP 伺服器並以 OpenAI Agents SDK 編排, 可建立從單一代理擴展到完整軟體交付流程的確定性, 可審查工作流程, 例如由 Project Manager 協調 Designer, Frontend Developer, Backend Developer 與 Tester 代理。</p></div>
+</section>
+
+<section id="github-action">
+  <h2>Codex GitHub Action</h2>
+  <p>openai/codex-action@v1 讓你能從 GitHub 事件觸發 Codex 動作, 在 CI/CD 工作中執行 Codex, 套用修補或從工作流程張貼審查。</p>
+
+  <h3>範例工作流程</h3>
+  <div class="code-block"><span class="key">name</span>: Codex pull request review
+<span class="kw">on</span>:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  codex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run Codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: <span class="str">${{ secrets.OPENAI_API_KEY }}</span>
+          prompt-file: .github/codex/prompts/review.md
+          output-file: codex-output.md</div>
+
+  <h3>管理權限</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">safety-strategy, 預設 drop-sudo</div><div class="desc">在執行 Codex 前移除 sudo。</div></div>
+    <div class="field"><div class="name">unprivileged-user</div><div class="desc">以特定帳號執行 Codex, 搭配 safety-strategy: unprivileged-user。</div></div>
+    <div class="field"><div class="name">read-only</div><div class="desc">防止檔案變更與網路存取。</div></div>
+    <div class="field"><div class="name">allow-users / allow-bots</div><div class="desc">限制可觸發工作流程的對象。</div></div>
+  </div>
+
+  <h3>資安檢查清單</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">限制觸發者</div><div class="event-desc">用受信任的事件或明確核准限制誰能啟動工作流程。</div></div>
+    <div class="event-item"><div class="event-name">清理輸入</div><div class="event-desc">清理來自 pull request 與 commit 訊息的提示輸入, 避免注入。</div></div>
+    <div class="event-item"><div class="event-name">保護金鑰</div><div class="event-desc">保持 safety-strategy 為 drop-sudo, 或使用非特權使用者。</div></div>
+    <div class="event-item"><div class="event-name">最後執行</div><div class="event-desc">把 Codex 放在最後一個步驟, 避免後續步驟繼承非預期變更。</div></div>
+  </div>
+</section>
+
+<section id="non-interactive">
+  <h2>Non-interactive mode</h2>
+  <p>用 codex exec 從腳本與 CI 執行 Codex, 不需開啟互動式 TUI。</p>
+  <div class="code-block"><span class="fn">codex</span> exec <span class="str">"summarize the repository structure and list the top 5 risky areas"</span>
+<span class="fn">codex</span> exec <span class="key">--json</span> <span class="str">"summarize the repo structure"</span> | jq</div>
+
+  <h3>常見用法</h3>
+  <div class="api-fields">
+    <div class="field"><div class="name">--ephemeral</div><div class="desc">避免把工作階段紀錄檔持久化到磁碟。</div></div>
+    <div class="field"><div class="name">--sandbox workspace-write</div><div class="desc">允許編輯, 建議取代已淘汰的 --full-auto。</div></div>
+    <div class="field"><div class="name">--output-schema</div><div class="desc">要求最終回應符合指定的 JSON Schema。</div></div>
+    <div class="field"><div class="name">-o / --output-last-message</div><div class="desc">把最終訊息寫入檔案供下游腳本使用。</div></div>
+  </div>
+  <p>codex exec 預設在唯讀沙箱執行, 需要邊界最小的權限。CODEX_API_KEY 只在單次 codex exec 呼叫中設定, 不要在會簽出並執行儲存庫程式碼的工作流程中把 API 金鑰設為工作層級環境變數。用 codex exec resume --last 延續前次執行。</p>
+
+  <h3>常見自動化模式</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">Prompt-plus-stdin</div><div class="event-desc">已知指令內容, 把管線輸出作為情境, 例如 npm test 2>&1 | codex exec "..."。</div></div>
+    <div class="event-item"><div class="event-name">codex exec -</div><div class="event-desc">當 stdin 應該成為完整提示時使用, 例如 cat prompt.txt | codex exec -。</div></div>
+    <div class="event-item"><div class="event-name">CI 自動修復</div><div class="event-desc">CI 失敗時觸發後續工作流程, 產生修補檔案並在獨立工作中開啟 pull request。</div></div>
+  </div>
+</section>
+
+<section id="github-review">
+  <h2>Codex code review in GitHub</h2>
+  <p>在 GitHub pull request 上取得另一輪高訊噪比的審查, Codex 會審查 pull request 的 diff, 遵循你的儲存庫指引, 並張貼聚焦於嚴重問題的標準 GitHub 程式碼審查。</p>
+
+  <h3>設定與使用</h3>
+  <div class="stage-tabs" data-group="ghReview">
+    <div class="stage-tab active" data-group="ghReview" data-step="0" onclick="goStep('ghReview',0)">1 · 設定 Codex cloud</div>
+    <div class="stage-tab" data-group="ghReview" data-step="1" onclick="goStep('ghReview',1)">2 · 開啟設定</div>
+    <div class="stage-tab" data-group="ghReview" data-step="2" onclick="goStep('ghReview',2)">3 · 開啟 Code review</div>
+    <div class="stage-tab" data-group="ghReview" data-step="3" onclick="goStep('ghReview',3)">4 · 請求審查</div>
+  </div>
+  <div class="demo-panel visible" data-group="ghReview" data-step="0"><p>為你要審查的儲存庫設定 Codex cloud。</p></div>
+  <div class="demo-panel" data-group="ghReview" data-step="1"><p>前往 Codex code review 設定頁面。</p></div>
+  <div class="demo-panel" data-group="ghReview" data-step="2"><p>為你的儲存庫開啟 Code review。</p></div>
+  <div class="demo-panel" data-group="ghReview" data-step="3"><p>在 pull request 意見中提及 @codex review, 等待 Codex 反應並張貼審查。</p></div>
+  <span class="step-indicator" data-indicator="ghReview">步驟 1 / 4</span>
+
+  <p>Codex 會搜尋儲存庫中的 AGENTS.md 檔案並遵循其中的 Review guidelines, 也可用 @codex review for security regressions 做單次聚焦, 用 @codex fix the P1 issue 請 Codex 直接修復問題。</p>
+</section>
+
+<section id="slack">
+  <h2>Use Codex in Slack</h2>
+  <p>在頻道與討論串中提及 @Codex 並附上提示即可執行任務, Codex 會建立雲端任務並回覆結果。</p>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 設定雲端任務</div><div class="event-desc">需要 Plus, Pro, Business, Enterprise 或 Edu 方案, 已連接的 GitHub 帳號, 以及至少一個環境。</div></div>
+    <div class="event-item"><div class="event-name">2 · 安裝 Slack app</div><div class="event-desc">在 Codex 設定中為你的工作區安裝, 視工作區政策可能需要管理員核准。</div></div>
+    <div class="event-item"><div class="event-name">3 · 加入頻道</div><div class="event-desc">在頻道中提及 @Codex 時 Slack 會提示加入。</div></div>
+    <div class="event-item"><div class="event-name">4 · 開始任務</div><div class="event-desc">提及 @Codex 並附上提示, 可選擇指定環境或儲存庫, 例如 @Codex fix the above in openai/codex。</div></div>
+  </div>
+  <div class="info-box"><p>Enterprise 管理員可在工作區設定中停用回答功能, 防止 Codex 在 Slack 討論串中張貼環境資訊, 停用後 Codex 只會回覆任務連結。</p></div>
+</section>
+
+<section id="linear">
+  <h2>Use Codex in Linear</h2>
+  <p>從 Linear issue 委派工作, 指派 issue 給 Codex 或在意見中提及 @Codex, Codex 會建立雲端任務並回報進度與結果, 於付費方案可用。</p>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">1 · 設定雲端任務</div><div class="event-desc">在 Codex 中連接 GitHub 並為你的儲存庫建立環境。</div></div>
+    <div class="event-item"><div class="event-name">2 · 安裝整合</div><div class="event-desc">在 Codex 設定中為工作區安裝 Codex for Linear。</div></div>
+    <div class="event-item"><div class="event-name">3 · 連結帳號</div><div class="event-desc">在 Linear issue 意見討論串中提及 @Codex 連結帳號。</div></div>
+  </div>
+  <p>可在 Linear 設定中建立分流規則自動把 issue 指派給 Codex, 之後會以 issue 建立者的帳號執行任務。本機使用者可透過 MCP 連接 Linear:</p>
+  <div class="code-block"><span class="fn">codex</span> mcp add linear <span class="key">--url</span> https://mcp.linear.app/mcp</div>
+</section>
+
+<section id="cli-customization">
+  <h2>CLI customization</h2>
+  <p>自訂 Codex 終端機介面, 編輯器, 自動完成與快捷鍵。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">語法標色與主題</div><div class="desc">TUI 會為 Markdown 程式碼區塊與檔案 diff 加上語法標色, 執行 /theme 開啟主題選擇器, 加入 .tmTheme 檔案到 $CODEX_HOME/themes 可自訂主題。</div></div>
+    <div class="field"><div class="name">Shell 自動完成</div><div class="desc">codex completion zsh 產生 Bash, Zsh, Fish 或 PowerShell 的自動完成腳本。</div></div>
+    <div class="field"><div class="name">提示編輯器</div><div class="desc">在輸入框按 Ctrl+G 開啟由 VISUAL 或 EDITOR 設定的編輯器, 適合較長提示。</div></div>
+  </div>
+</section>
+
+<section id="developer-commands">
+  <h2>Developer commands</h2>
+  <p>Codex 開發者介面的指令與斜線指令參考。ChatGPT 網頁版有自己的指令選單, 不套用此處記載的 Codex app 或 CLI 指令集。</p>
+
+  <h3>全域旗標</h3>
+  <div class="search-box">
+    <input type="text" id="flagSearch" placeholder="搜尋旗標..." oninput="filterList('flagSearch','flagTable')" />
+    <span class="filter-count" id="flagSearch-count"></span>
+  </div>
+  <div class="data-table-wrap">
+    <table class="data-table" id="flagTable">
+      <thead><tr><th>旗標</th><th>值</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr data-row><td><code>--add-dir</code></td><td>path</td><td>在主要工作區之外授予額外目錄寫入權。</td></tr>
+        <tr data-row><td><code>--ask-for-approval, -a</code></td><td>untrusted / on-request / never</td><td>控制 Codex 何時暫停等待核准。</td></tr>
+        <tr data-row><td><code>--cd, -C</code></td><td>path</td><td>設定代理開始處理前的工作目錄。</td></tr>
+        <tr data-row><td><code>--config, -c</code></td><td>key=value</td><td>覆寫設定值。</td></tr>
+        <tr data-row><td><code>--dangerously-bypass-approvals-and-sandbox, --yolo</code></td><td>boolean</td><td>不經核准或沙箱執行每個指令, 僅限強化過的環境。</td></tr>
+        <tr data-row><td><code>--image, -i</code></td><td>path[,path...]</td><td>附加圖片到初始提示。</td></tr>
+        <tr data-row><td><code>--model, -m</code></td><td>string</td><td>覆寫設定中的模型。</td></tr>
+        <tr data-row><td><code>--oss</code></td><td>boolean</td><td>使用本機開源模型供應商。</td></tr>
+        <tr data-row><td><code>--profile, -p</code></td><td>string</td><td>在基礎設定上疊加 profile-name.config.toml。</td></tr>
+        <tr data-row><td><code>--remote</code></td><td>ws:// / wss:// / unix://</td><td>連接遠端 app-server 端點。</td></tr>
+        <tr data-row><td><code>--sandbox, -s</code></td><td>read-only / workspace-write / danger-full-access</td><td>選擇模型產生的 shell 指令的沙箱政策。</td></tr>
+        <tr data-row><td><code>--search</code></td><td>boolean</td><td>啟用即時網頁搜尋。</td></tr>
+        <tr data-row><td><code>--strict-config</code></td><td>boolean</td><td>config.toml 含未知欄位時回報錯誤。</td></tr>
+        <tr data-row><td><code>PROMPT</code></td><td>string</td><td>啟動工作階段的文字指示, 省略則啟動 TUI。</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>指令總覽</h3>
+  <div class="search-box">
+    <input type="text" id="cmdOverviewSearch" placeholder="搜尋指令..." oninput="filterList('cmdOverviewSearch','cmdOverviewTable')" />
+    <span class="filter-count" id="cmdOverviewSearch-count"></span>
+  </div>
+  <div class="data-table-wrap">
+    <table class="data-table" id="cmdOverviewTable">
+      <thead><tr><th>指令</th><th>成熟度</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr data-row><td><code>codex</code></td><td>Stable</td><td>啟動終端機 UI。</td></tr>
+        <tr data-row><td><code>codex app</code></td><td>Stable</td><td>啟動 macOS 或 Windows 的桌面應用程式。</td></tr>
+        <tr data-row><td><code>codex app-server</code></td><td>Experimental</td><td>啟動 Codex app server 供本機開發或除錯。</td></tr>
+        <tr data-row><td><code>codex apply</code></td><td>Stable</td><td>把雲端任務最新的 diff 套用到本機工作樹。</td></tr>
+        <tr data-row><td><code>codex archive</code></td><td>Stable</td><td>依 ID 或名稱封存已儲存的互動工作階段。</td></tr>
+        <tr data-row><td><code>codex cloud</code></td><td>Experimental</td><td>從終端機瀏覽或執行 Codex 雲端任務。</td></tr>
+        <tr data-row><td><code>codex completion</code></td><td>Stable</td><td>產生 shell 自動完成腳本。</td></tr>
+        <tr data-row><td><code>codex debug models</code></td><td>Experimental</td><td>印出 Codex 看到的原始模型目錄。</td></tr>
+        <tr data-row><td><code>codex delete</code></td><td>Stable</td><td>依 ID 或名稱永久刪除已儲存的工作階段。</td></tr>
+        <tr data-row><td><code>codex doctor</code></td><td>Stable</td><td>產生本機安裝, 設定, 驗證等診斷報告。</td></tr>
+        <tr data-row><td><code>codex exec</code></td><td>Stable</td><td>非互動執行 Codex, 別名 codex e。</td></tr>
+        <tr data-row><td><code>codex execpolicy</code></td><td>Experimental</td><td>評估 execpolicy 規則檔案。</td></tr>
+        <tr data-row><td><code>codex features</code></td><td>Stable</td><td>列出功能旗標並於 config.toml 中持久啟用或停用。</td></tr>
+        <tr data-row><td><code>codex fork</code></td><td>Stable</td><td>把先前的互動工作階段分支成新任務。</td></tr>
+        <tr data-row><td><code>codex login</code> / <code>logout</code></td><td>Stable</td><td>驗證或移除已儲存的憑證。</td></tr>
+        <tr data-row><td><code>codex mcp</code></td><td>Stable</td><td>管理 MCP 伺服器, 列出, 加入, 移除, 驗證。</td></tr>
+        <tr data-row><td><code>codex mcp-server</code></td><td>Stable</td><td>透過 stdio 把 Codex 自身作為 MCP 伺服器執行。</td></tr>
+        <tr data-row><td><code>codex plugin</code></td><td>Stable</td><td>從已設定的市集來源安裝, 列出並移除 plugins。</td></tr>
+        <tr data-row><td><code>codex plugin marketplace</code></td><td>Stable</td><td>加入, 列出, 升級或移除 plugin 市集。</td></tr>
+        <tr data-row><td><code>codex remote-control</code></td><td>Experimental</td><td>執行或管理本機 app-server 的遠端控制。</td></tr>
+        <tr data-row><td><code>codex resume</code></td><td>Stable</td><td>依 ID 延續先前的互動工作階段, 或恢復最近的對話。</td></tr>
+        <tr data-row><td><code>codex review</code></td><td>Stable</td><td>非互動執行未提交變更, 基準分支 diff, commit 或自訂審查指示。</td></tr>
+        <tr data-row><td><code>codex sandbox</code></td><td>Stable</td><td>在 Codex 提供的 macOS, Linux 或 Windows 沙箱中執行任意指令。</td></tr>
+        <tr data-row><td><code>codex unarchive</code></td><td>Stable</td><td>依 ID 或名稱還原已封存的互動工作階段。</td></tr>
+        <tr data-row><td><code>codex update</code></td><td>Stable</td><td>檢查並套用 Codex CLI 更新。</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>常用指令範例</h3>
+  <div class="chip-row" data-chipgroup="cmdDetail">
+    <span class="chip active" data-group="cmdDetail" data-val="exec" onclick="chipSelect('cmdDetail','exec')">codex exec</span>
+    <span class="chip" data-group="cmdDetail" data-val="review" onclick="chipSelect('cmdDetail','review')">codex review</span>
+    <span class="chip" data-group="cmdDetail" data-val="mcp" onclick="chipSelect('cmdDetail','mcp')">codex mcp</span>
+    <span class="chip" data-group="cmdDetail" data-val="sandbox" onclick="chipSelect('cmdDetail','sandbox')">codex sandbox</span>
+    <span class="chip" data-group="cmdDetail" data-val="cloud" onclick="chipSelect('cmdDetail','cloud')">codex cloud</span>
+  </div>
+  <div class="demo-panel visible" data-group="cmdDetail" data-val="exec"><p>--ephemeral 不持久化紀錄檔, --sandbox 選擇沙箱政策, --json 印出 JSON Lines 事件, --output-schema 限制回應格式, resume 子指令可延續先前的非互動工作階段。</p></div>
+  <div class="demo-panel" data-group="cmdDetail" data-val="review"><p>--uncommitted 審查未提交變更, --base 與基準分支比較, --commit 審查指定 commit, 三者與自訂 PROMPT 互斥, --title 只能搭配 --commit 使用。</p></div>
+  <div class="demo-panel" data-group="cmdDetail" data-val="mcp"><p>add 用 stdio 啟動指令或 --url 註冊 streamable HTTP 伺服器, get/list 檢視設定, login/logout 只適用於支援 OAuth 的 streamable HTTP 伺服器。</p></div>
+  <div class="demo-panel" data-group="cmdDetail" data-val="sandbox"><p>在 Codex 內部使用的相同政策下執行指令, macOS 用 Seatbelt, Linux 用 Landlock, 皆支援 --permission-profile 套用具名權限設定檔。</p></div>
+  <div class="demo-panel" data-group="cmdDetail" data-val="cloud"><p>--env 指定雲端環境, --attempts 設定 best-of-N 嘗試次數, codex cloud list 以 --json 列出近期任務供自動化使用。</p></div>
+
+  <h3>互動快捷鍵</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">@</div><div class="event-desc">搜尋工作區中的檔案並加入路徑到提示。</div></div>
+    <div class="event-item"><div class="event-name">Ctrl+R</div><div class="event-desc">搜尋提示歷程。</div></div>
+    <div class="event-item"><div class="event-name">Ctrl+O / /copy</div><div class="event-desc">複製最新完成的 Codex 輸出。</div></div>
+    <div class="event-item"><div class="event-name">!</div><div class="event-desc">在目前核准與沙箱設定下執行本機 shell 指令。</div></div>
+    <div class="event-item"><div class="event-name">Tab</div><div class="event-desc">在 Codex 工作時排入下一回合的後續提示或指令。</div></div>
+  </div>
+
+  <h3>斜線指令參考</h3>
+  <div class="search-box">
+    <input type="text" id="slashDevSearch" placeholder="搜尋斜線指令..." oninput="filterList('slashDevSearch','slashDevTable')" />
+    <span class="filter-count" id="slashDevSearch-count"></span>
+  </div>
+  <div class="data-table-wrap">
+    <table class="data-table" id="slashDevTable">
+      <thead><tr><th>指令</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr data-row><td>/permissions</td><td>設定 Codex 不經詢問就能做的事。</td></tr>
+        <tr data-row><td>/ide</td><td>納入開啟的檔案, 目前選取內容與其他 IDE 情境。</td></tr>
+        <tr data-row><td>/agent, /subagents</td><td>切換作用中的代理執行緒。</td></tr>
+        <tr data-row><td>/apps</td><td>瀏覽 apps 並插入到提示中。</td></tr>
+        <tr data-row><td>/plugins</td><td>瀏覽已安裝與可發現的 plugins。</td></tr>
+        <tr data-row><td>/hooks</td><td>檢視並管理生命週期 hooks。</td></tr>
+        <tr data-row><td>/clear</td><td>清除終端機並開始新任務。</td></tr>
+        <tr data-row><td>/rename</td><td>重新命名目前任務。</td></tr>
+        <tr data-row><td>/archive, /delete</td><td>封存或永久刪除目前工作階段。</td></tr>
+        <tr data-row><td>/compact</td><td>摘要化可見對話以釋放 token。</td></tr>
+        <tr data-row><td>/diff</td><td>顯示 Git diff, 包含尚未追蹤的檔案。</td></tr>
+        <tr data-row><td>/approve</td><td>核准最近一次自動審查拒絕的重試。</td></tr>
+        <tr data-row><td>/memories</td><td>設定記憶的使用與產生方式。</td></tr>
+        <tr data-row><td>/skills</td><td>瀏覽並使用 skills。</td></tr>
+        <tr data-row><td>/import</td><td>匯入 Claude Code 設定, 專案檔案與近期對話。</td></tr>
+        <tr data-row><td>/init</td><td>在目前目錄產生 AGENTS.md 範本。</td></tr>
+        <tr data-row><td>/mcp</td><td>列出已設定的 MCP 工具。</td></tr>
+        <tr data-row><td>/mention</td><td>把檔案附加到對話中。</td></tr>
+        <tr data-row><td>/model</td><td>選擇作用中的模型與推理強度。</td></tr>
+        <tr data-row><td>/fast</td><td>切換 Fast 服務層級。</td></tr>
+        <tr data-row><td>/plan</td><td>切換到規劃模式。</td></tr>
+        <tr data-row><td>/goal</td><td>設定, 編輯, 暫停, 繼續, 檢視或清除任務目標。</td></tr>
+        <tr data-row><td>/personality</td><td>選擇回應的溝通風格。</td></tr>
+        <tr data-row><td>/ps, /stop</td><td>檢視或停止背景終端機。</td></tr>
+        <tr data-row><td>/fork</td><td>把目前任務分支成新任務。</td></tr>
+        <tr data-row><td>/side, /btw</td><td>開始不影響主任務的暫時性側邊對話。</td></tr>
+        <tr data-row><td>/resume, /new, /quit</td><td>恢復對話, 開始新任務, 或結束 CLI。</td></tr>
+        <tr data-row><td>/review</td><td>請 Codex 審查你的工作樹。</td></tr>
+        <tr data-row><td>/status</td><td>顯示工作階段設定與 token 使用量。</td></tr>
+        <tr data-row><td>/usage</td><td>檢視帳號 token 使用量。</td></tr>
+        <tr data-row><td>/debug-config</td><td>印出設定分層與需求診斷資訊。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="developer-settings">
+  <h2>Developer settings</h2>
+  <p>跨 ChatGPT 與 Codex 用戶端設定開發選項。</p>
+  <div class="api-fields">
+    <div class="field"><div class="name">ChatGPT web</div><div class="desc">在 ChatGPT 設定中儲存產品與工作區偏好, Work 對話在受管理環境中執行, 不會讀取本機 Codex 設定檔。</div></div>
+    <div class="field"><div class="name">Code review</div><div class="desc">在 Settings > Git 中用 Review delivery 選擇 Inline 於目前任務執行 /review, 或 Detached 開始獨立審查任務。</div></div>
+    <div class="field"><div class="name">IDE extension sync</div><div class="desc">桌面應用程式與 IDE 擴充功能在同一專案開啟時共享作用中任務與編輯器情境, 可從輸入框開關 IDE context。</div></div>
+    <div class="field"><div class="name">Git</div><div class="desc">標準化分支命名, 選擇是否使用強制推送, 設定產生提交訊息與 pull request 描述的提示。</div></div>
+    <div class="field"><div class="name">Codex CLI</div><div class="desc">從 ~/.codex/config.toml 讀取個人預設值, 需要專案特定覆寫時在受信任的專案加入 .codex/config.toml。</div></div>
+  </div>
+
+  <h3>檢視你的設定</h3>
+  <div class="event-list">
+    <div class="event-item"><div class="event-name">/status</div><div class="event-desc">查看作用中的模型, 核准政策, 可寫入根目錄與 token 使用量。</div></div>
+    <div class="event-item"><div class="event-name">/debug-config</div><div class="event-desc">依優先順序查看設定分層, 以及受管理政策需求的來源。</div></div>
+    <div class="event-item"><div class="event-name">--strict-config</div><div class="event-desc">把無法識別的 config.toml 鍵值視為錯誤而非忽略。</div></div>
+  </div>
+
+  <h3>IDE 擴充功能編輯器設定參考</h3>
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead><tr><th>設定</th><th>預設值</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>chatgpt.commentCodeLensEnabled</td><td>true</td><td>在 TODO 註解上方顯示 CodeLens。</td></tr>
+        <tr><td>chatgpt.openOnStartup</td><td>false</td><td>擴充功能啟動完成時聚焦 Codex 側邊欄。</td></tr>
+        <tr><td>chatgpt.followUpQueueMode</td><td>queue</td><td>選擇執行期間送出的訊息要排隊等下一輪, 還是操控目前執行。</td></tr>
+        <tr><td>chatgpt.composerEnterBehavior</td><td>enter</td><td>選擇 Enter 一律送出, 或需要 Cmd/Ctrl+Enter。</td></tr>
+        <tr><td>chatgpt.reviewDelivery</td><td>inline</td><td>在目前任務執行 /review, 或開始獨立審查任務。</td></tr>
+        <tr><td>chatgpt.runCodexInWindowsSubsystemForLinux</td><td>false</td><td>僅 Windows, 在 WSL 可用時於其中執行 Codex。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<script>
+  function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    document.getElementById('themeToggle').textContent = isDark ? '☀ 亮色模式' : '🌙 暗色模式';
+  }
+
+  function goStep(group, n) {
+    const tabs = document.querySelectorAll('.stage-tab[data-group="' + group + '"]');
+    const panels = document.querySelectorAll('.demo-panel[data-group="' + group + '"][data-step]');
+    panels.forEach(function(p) {
+      p.classList.toggle('visible', Number(p.dataset.step) === n);
+    });
+    tabs.forEach(function(t) {
+      const s = Number(t.dataset.step);
+      t.classList.remove('active', 'done');
+      if (s === n) t.classList.add('active');
+      else if (s < n) t.classList.add('done');
+    });
+    const ind = document.querySelector('[data-indicator="' + group + '"]');
+    if (ind) ind.textContent = '步驟 ' + (n + 1) + ' / ' + tabs.length;
+  }
+
+  function chipSelect(group, val) {
+    document.querySelectorAll('.chip[data-group="' + group + '"]').forEach(function(c) {
+      c.classList.toggle('active', c.dataset.val === val);
+    });
+    document.querySelectorAll('.demo-panel[data-group="' + group + '"][data-val]').forEach(function(p) {
+      p.classList.toggle('visible', p.dataset.val === val);
+    });
+  }
+
+  function filterList(inputId, tableId) {
+    const q = document.getElementById(inputId).value.trim().toLowerCase();
+    const rows = document.querySelectorAll('#' + tableId + ' tr[data-row]');
+    let count = 0;
+    rows.forEach(function(row) {
+      const match = row.textContent.toLowerCase().includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) count++;
+    });
+    const el = document.getElementById(inputId + '-count');
+    if (el) el.textContent = count + ' / ' + rows.length + ' 筆';
+  }
+
+  ['pluginBuild','submitStep','cloudRun','ghReview'].forEach(function(g) { goStep(g, 0); });
+  chipSelect('hookEvt', 'sessionstart');
+  chipSelect('cmdDetail', 'exec');
+  filterList('apiSearch', 'apiTable');
+  filterList('flagSearch', 'flagTable');
+  filterList('cmdOverviewSearch', 'cmdOverviewTable');
+  filterList('slashDevSearch', 'slashDevTable');
+</script>
+</body>
+</html>
